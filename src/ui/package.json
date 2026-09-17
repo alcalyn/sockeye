@@ -1,6 +1,6 @@
 {
   "name": "@sockeye-js/ui",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Local dashboard for sockeye: a REST API and a small Vue SPA you can mount on any server.",
   "license": "AGPL-3.0-or-later",
   "author": "Julien Maulny (https://github.com/alcalyn)",

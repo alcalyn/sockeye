@@ -1,5 +1,11 @@
 # @sockeye-js/core
 
+## 0.2.0
+
+### Minor Changes
+
+- 12d8568: Add bandwidth over time to measure impact of a change on bandwidth, per message
+
 ## 0.1.0
 
 ### Minor Changes

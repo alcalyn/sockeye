@@ -314,9 +314,9 @@ export function describeStoreContract(label: string, context: ContractContext): 
       it('reports a bucket-by-bucket history for a message', async () => {
         const { timeline } = (await windowed.getMessageStats('tenMinutesAgo', { window: '15m' }))[0];
 
-        // One bucket per minute over the period, the newest still filling up.
-        expect(timeline.length).toBeGreaterThanOrEqual(15);
-        expect(timeline[0].to - timeline[0].from).toBe(MINUTE);
+        // One bucket per quarter-minute over the period, the newest still filling up.
+        expect(timeline.length).toBeGreaterThanOrEqual(60);
+        expect(timeline[0].to - timeline[0].from).toBe(MINUTE / 4);
         expect(timeline.reduce((total, bucket) => total + bucket.count, 0)).toBe(1);
 
         // Quiet buckets are reported rather than skipped, so a chart shows the gaps.
@@ -331,7 +331,7 @@ export function describeStoreContract(label: string, context: ContractContext): 
 
       it('falls back to the coarsest resolution for the whole history', async () => {
         const { timeline } = (await windowed.getMessageStats('threeDaysAgo', { window: 'all' }))[0];
-        expect(timeline[0].to - timeline[0].from).toBe(DAY);
+        expect(timeline[0].to - timeline[0].from).toBe(4 * HOUR);
         expect(timeline.reduce((total, bucket) => total + bucket.count, 0)).toBe(1);
       });
 

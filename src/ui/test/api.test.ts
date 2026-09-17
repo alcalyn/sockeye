@@ -71,7 +71,7 @@ describe('createApiHandler', () => {
 
     expect(body.messages.map((m: any) => m.name)).not.toContain('ancient');
     expect(body.overview.window.key).toBe('5m');
-    expect(body.overview.window.resolutionMs).toBe(60_000);
+    expect(body.overview.window.resolutionMs).toBe(5_000);
 
     const all = await withWindow({ method: 'GET', path: '/dashboard' });
     expect((all.body as any).messages.map((m: any) => m.name)).toContain('ancient');

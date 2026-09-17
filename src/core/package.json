@@ -1,6 +1,6 @@
 {
   "name": "@sockeye-js/core",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Shared types, store interfaces and statistics primitives for sockeye.",
   "license": "AGPL-3.0-or-later",
   "author": "Julien Maulny (https://github.com/alcalyn)",

@@ -59,3 +59,8 @@ A read only fetches the slices that actually hold data, thanks to a per-slice in
 
 `ioredis` (or any compatible client) and Redis 3.0 or later. The flush timer is `unref`-ed,
 so it never keeps your process alive.
+
+## License
+
+This package is part of [sockeye](../../README.md), under the
+[GNU AGPL v3.0 or later](LICENSE).

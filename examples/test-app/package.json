@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "description": "Demo socket.io app used to exercise sockeye end to end. Never published.",
-  "license": "MIT",
+  "license": "AGPL-3.0-or-later",
   "scripts": {
     "start": "node server.js",
     "dev": "node server.js",

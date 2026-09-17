@@ -64,3 +64,8 @@ memory. `store.getWindows()` returns the list the dashboard offers.
 Metrics live in the process: they are lost on restart, and each instance of your app only
 knows about its own traffic. Use [`@sockeye/store-redis`](../store-redis) when you run
 more than one instance.
+
+## License
+
+This package is part of [sockeye](../../README.md), under the
+[GNU AGPL v3.0 or later](LICENSE).

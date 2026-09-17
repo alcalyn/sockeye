@@ -57,3 +57,8 @@ real value. Only the buckets actually hit are stored.
 Because the layout is a pure function of the value, two histograms merge by simply adding
 their buckets, which is what lets several processes increment the same Redis counters, and
 what turns a handful of one-minute slices into a "last 15 minutes" figure.
+
+## License
+
+This package is part of [sockeye](../../README.md), under the
+[GNU AGPL v3.0 or later](LICENSE).

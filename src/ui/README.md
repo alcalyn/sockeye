@@ -76,3 +76,8 @@ pnpm --filter @sockeye/ui dev:client
 ```
 
 Vite proxies `/api` to an app serving the dashboard on `http://localhost:3000/sockeye`.
+
+## License
+
+This package is part of [sockeye](../../README.md), under the
+[GNU AGPL v3.0 or later](LICENSE).

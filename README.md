@@ -328,4 +328,4 @@ pnpm --filter sockeye-test-app start
 
 ## License
 
-This repository is under [AGPL-3.0 License](LICENSE).
+This repository is under the [GNU AGPL v3.0 or later](LICENSE).

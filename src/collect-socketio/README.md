@@ -54,3 +54,8 @@ Each namespace is kept as a separate series in the store.
 
 The middleware never throws into your app: if the store is down, the error goes to `onError`
 and your events keep flowing.
+
+## License
+
+This package is part of [sockeye](../../README.md), under the
+[GNU AGPL v3.0 or later](LICENSE).

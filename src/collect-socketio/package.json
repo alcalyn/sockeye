@@ -2,7 +2,7 @@
   "name": "@sockeye/collect-socketio",
   "version": "0.1.0",
   "description": "sockeye collector for socket.io: one middleware, and every event is measured.",
-  "license": "MIT",
+  "license": "AGPL-3.0-or-later",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

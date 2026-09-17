@@ -2,7 +2,7 @@
   "name": "@sockeye/store-memory",
   "version": "0.1.0",
   "description": "In-process store for sockeye: keeps WebSocket metrics in memory, with no external service.",
-  "license": "MIT",
+  "license": "AGPL-3.0-or-later",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

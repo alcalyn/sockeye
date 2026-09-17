@@ -55,3 +55,8 @@ pending.end(await generateReport(payload));
 
 - `monitorWsSocket(socket, store, options)` instruments a single socket you manage yourself.
 - `attachWsMonitor` returns a function that stops monitoring new connections.
+
+## License
+
+This package is part of [sockeye](../../README.md), under the
+[GNU AGPL v3.0 or later](LICENSE).

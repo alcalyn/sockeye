@@ -51,3 +51,8 @@ time. `cancel()` drops the timer without recording a reply.
 // Skip the JSON measurement when the real frame size is at hand:
 monitor.received('sync', undefined, { bytes: frame.byteLength });
 ```
+
+## License
+
+This package is part of [sockeye](../../README.md), under the
+[GNU AGPL v3.0 or later](LICENSE).

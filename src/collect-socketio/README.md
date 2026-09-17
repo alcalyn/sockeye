@@ -1,15 +1,15 @@
-# @sockeye/collect-socketio
+# @sockeye-js/collect-socketio
 
 socket.io collector for [sockeye](../../README.md). One middleware, and every event
 is measured.
 
 ```bash
-npm install @sockeye/collect-socketio @sockeye/store-memory
+npm install @sockeye-js/collect-socketio @sockeye-js/store-memory
 ```
 
 ```ts
-import { sockeye } from '@sockeye/collect-socketio';
-import { createMemoryStore } from '@sockeye/store-memory';
+import { sockeye } from '@sockeye-js/collect-socketio';
+import { createMemoryStore } from '@sockeye-js/store-memory';
 
 const store = createMemoryStore();
 io.use(sockeye(store));
@@ -33,7 +33,7 @@ A broadcast counts as one message carrying its payload size, whatever the number
 `io.use()` covers the default namespace. To cover the others, including those created later:
 
 ```ts
-import { monitorSocketIo } from '@sockeye/collect-socketio';
+import { monitorSocketIo } from '@sockeye-js/collect-socketio';
 
 monitorSocketIo(io, store);
 ```

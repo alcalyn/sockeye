@@ -1,7 +1,7 @@
 import { createServer, type Server } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import { afterEach, describe, expect, it } from 'vitest';
-import { MemoryStore } from '@sockeye/store-memory';
+import { MemoryStore } from '@sockeye-js/store-memory';
 import { createApiHandler, dashboard } from '../src/index.js';
 
 const NOW = 1_700_006_400_000;

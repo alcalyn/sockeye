@@ -11,10 +11,10 @@
     "traffic": "node traffic.js"
   },
   "dependencies": {
-    "@sockeye/collect-socketio": "workspace:*",
-    "@sockeye/store-memory": "workspace:*",
-    "@sockeye/store-redis": "workspace:*",
-    "@sockeye/ui": "workspace:*",
+    "@sockeye-js/collect-socketio": "workspace:*",
+    "@sockeye-js/store-memory": "workspace:*",
+    "@sockeye-js/store-redis": "workspace:*",
+    "@sockeye-js/ui": "workspace:*",
     "express": "^4.21.2",
     "ioredis": "^5.4.2",
     "socket.io": "^4.8.1",

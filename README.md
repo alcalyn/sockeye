@@ -22,7 +22,7 @@ It works with **socket.io**, **ws**, and any other transport, and stores its met
 For a socket.io app keeping metrics in memory:
 
 ```bash
-npm install @sockeye/collect-socketio @sockeye/store-memory @sockeye/ui
+npm install @sockeye-js/collect-socketio @sockeye-js/store-memory @sockeye-js/ui
 ```
 
 Every package is ESM only and needs Node 18 or later.
@@ -32,9 +32,9 @@ Every package is ESM only and needs Node 18 or later.
 ```ts
 import express from 'express';
 import { Server } from 'socket.io';
-import { sockeye } from '@sockeye/collect-socketio';
-import { createMemoryStore } from '@sockeye/store-memory';
-import { dashboard } from '@sockeye/ui';
+import { sockeye } from '@sockeye-js/collect-socketio';
+import { createMemoryStore } from '@sockeye-js/store-memory';
+import { dashboard } from '@sockeye-js/ui';
 
 const store = createMemoryStore();
 
@@ -82,7 +82,7 @@ outwards. The dashboard shows the range actually covered, and the API returns it
 Pass a `windows` list, with a key, a label, a length, and how many buckets it holds:
 
 ```ts
-import { ALL_TIME } from '@sockeye/core';
+import { ALL_TIME } from '@sockeye-js/core';
 
 createMemoryStore({
   windows: [
@@ -136,13 +136,13 @@ For transports with no such concept, you close the timing window yourself: see
 
 | Package | What it does |
 | --- | --- |
-| [`@sockeye/collect-socketio`](src/collect-socketio) | One middleware, measures every socket.io event |
-| [`@sockeye/collect-ws`](src/collect-ws) | Measures every frame of a `ws` server |
-| [`@sockeye/collect-websocket`](src/collect-websocket) | Report messages yourself, from any transport |
-| [`@sockeye/store-memory`](src/store-memory) | Keeps metrics in the process, zero dependency |
-| [`@sockeye/store-redis`](src/store-redis) | Shares metrics across every instance of your app |
-| [`@sockeye/ui`](src/ui) | REST API + the Vue dashboard |
-| [`@sockeye/core`](src/core) | Types, store interfaces and the statistics primitives |
+| [`@sockeye-js/collect-socketio`](src/collect-socketio) | One middleware, measures every socket.io event |
+| [`@sockeye-js/collect-ws`](src/collect-ws) | Measures every frame of a `ws` server |
+| [`@sockeye-js/collect-websocket`](src/collect-websocket) | Report messages yourself, from any transport |
+| [`@sockeye-js/store-memory`](src/store-memory) | Keeps metrics in the process, zero dependency |
+| [`@sockeye-js/store-redis`](src/store-redis) | Shares metrics across every instance of your app |
+| [`@sockeye-js/ui`](src/ui) | REST API + the Vue dashboard |
+| [`@sockeye-js/core`](src/core) | Types, store interfaces and the statistics primitives |
 
 Collectors and stores are independent: any collector works with any store.
 
@@ -155,7 +155,7 @@ Collectors and stores are independent: any collector works with any store.
 `ws` knows nothing about your protocol, so tell sockeye how to name a message:
 
 ```ts
-import { attachWsMonitor } from '@sockeye/collect-ws';
+import { attachWsMonitor } from '@sockeye-js/collect-ws';
 
 attachWsMonitor(wss, store, {
   nameOf: (data) => JSON.parse(String(data)).type,
@@ -171,7 +171,7 @@ The lowest-level collector works with the browser `WebSocket` API, a raw socket,
 else. You call it:
 
 ```ts
-import { createMonitor } from '@sockeye/collect-websocket';
+import { createMonitor } from '@sockeye-js/collect-websocket';
 
 const monitor = createMonitor(store);
 
@@ -190,7 +190,7 @@ Use it when your app runs several instances, or when you want the metrics to out
 
 ```ts
 import Redis from 'ioredis';
-import { createRedisStore } from '@sockeye/store-redis';
+import { createRedisStore } from '@sockeye-js/store-redis';
 
 const store = createRedisStore(new Redis(process.env.REDIS_URL));
 ```
@@ -205,7 +205,7 @@ socket.io namespaces are kept apart automatically. `monitorSocketIo` also covers
 namespaces created later:
 
 ```ts
-import { monitorSocketIo } from '@sockeye/collect-socketio';
+import { monitorSocketIo } from '@sockeye-js/collect-socketio';
 
 monitorSocketIo(io, store);
 ```
@@ -236,7 +236,7 @@ Every read endpoint takes `?window=` (`1m`, `5m`, `1h`, `24h`, `7d`, `all`…).
 The API is framework-free underneath, if you would rather wire it up yourself:
 
 ```ts
-import { createApiHandler } from '@sockeye/ui';
+import { createApiHandler } from '@sockeye-js/ui';
 
 const handle = createApiHandler(store);
 const response = await handle({ method: 'GET', path: '/overview' });
@@ -305,7 +305,7 @@ interface StoreReaderInterface {
 Collectors only ever need the writer, so a store that forwards events to a remote service
 implements `StoreWriterInterface` alone. Stores the dashboard reads from implement both.
 
-`@sockeye/core` gives you the pieces to build one: `StatsAggregator` (counters plus
+`@sockeye-js/core` gives you the pieces to build one: `StatsAggregator` (counters plus
 histograms, mergeable), `WindowedSeries` and `WindowedTops` (the whole time-window machinery),
 `TopN` (bounded top lists), `histogram` and `applyListOptions`.
 

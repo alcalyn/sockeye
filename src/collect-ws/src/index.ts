@@ -4,7 +4,7 @@ import {
   measureSize,
   type CollectorOptions,
   type StoreWriterInterface,
-} from '@sockeye/core';
+} from '@sockeye-js/core';
 
 /**
  * Structural shape of a `ws` socket. Typed here rather than imported, so this package

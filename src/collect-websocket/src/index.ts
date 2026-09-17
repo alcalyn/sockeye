@@ -4,9 +4,9 @@ import {
   type CollectorOptions,
   type Direction,
   type StoreWriterInterface,
-} from '@sockeye/core';
+} from '@sockeye-js/core';
 
-export type { CollectorOptions } from '@sockeye/core';
+export type { CollectorOptions } from '@sockeye-js/core';
 
 export interface RecordOptions {
   /** Defaults to `in`. */

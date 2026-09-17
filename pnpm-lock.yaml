@@ -26,16 +26,16 @@ importers:
 
   examples/test-app:
     dependencies:
-      '@sockeye/collect-socketio':
+      '@sockeye-js/collect-socketio':
         specifier: workspace:*
         version: link:../../src/collect-socketio
-      '@sockeye/store-memory':
+      '@sockeye-js/store-memory':
         specifier: workspace:*
         version: link:../../src/store-memory
-      '@sockeye/store-redis':
+      '@sockeye-js/store-redis':
         specifier: workspace:*
         version: link:../../src/store-redis
-      '@sockeye/ui':
+      '@sockeye-js/ui':
         specifier: workspace:*
         version: link:../../src/ui
       express:
@@ -53,7 +53,7 @@ importers:
 
   src/collect-socketio:
     dependencies:
-      '@sockeye/core':
+      '@sockeye-js/core':
         specifier: workspace:^
         version: link:../core
     devDependencies:
@@ -66,13 +66,13 @@ importers:
 
   src/collect-websocket:
     dependencies:
-      '@sockeye/core':
+      '@sockeye-js/core':
         specifier: workspace:^
         version: link:../core
 
   src/collect-ws:
     dependencies:
-      '@sockeye/core':
+      '@sockeye-js/core':
         specifier: workspace:^
         version: link:../core
     devDependencies:
@@ -87,13 +87,13 @@ importers:
 
   src/store-memory:
     dependencies:
-      '@sockeye/core':
+      '@sockeye-js/core':
         specifier: workspace:^
         version: link:../core
 
   src/store-redis:
     dependencies:
-      '@sockeye/core':
+      '@sockeye-js/core':
         specifier: workspace:^
         version: link:../core
     devDependencies:
@@ -103,7 +103,7 @@ importers:
 
   src/ui:
     dependencies:
-      '@sockeye/core':
+      '@sockeye-js/core':
         specifier: workspace:^
         version: link:../core
     devDependencies:

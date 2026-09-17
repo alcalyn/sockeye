@@ -1,4 +1,4 @@
-# @sockeye/core
+# @sockeye-js/core
 
 ## 0.1.0
 

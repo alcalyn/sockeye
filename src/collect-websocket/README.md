@@ -1,16 +1,16 @@
-# @sockeye/collect-websocket
+# @sockeye-js/collect-websocket
 
 The free-form collector of [sockeye](../../README.md): you report the messages, so it
 works with the browser-style `WebSocket` API, a raw socket, or any protocol sockeye
 knows nothing about.
 
 ```bash
-npm install @sockeye/collect-websocket @sockeye/store-memory
+npm install @sockeye-js/collect-websocket @sockeye-js/store-memory
 ```
 
 ```ts
-import { createMonitor } from '@sockeye/collect-websocket';
-import { createMemoryStore } from '@sockeye/store-memory';
+import { createMonitor } from '@sockeye-js/collect-websocket';
+import { createMemoryStore } from '@sockeye-js/store-memory';
 
 const store = createMemoryStore();
 const monitor = createMonitor(store);

@@ -7,13 +7,13 @@ const pkg = (name: string) =>
 export default defineConfig({
   resolve: {
     alias: {
-      '@sockeye/core': pkg('core'),
-      '@sockeye/store-memory': pkg('store-memory'),
-      '@sockeye/collect-websocket': pkg('collect-websocket'),
-      '@sockeye/collect-socketio': pkg('collect-socketio'),
-      '@sockeye/collect-ws': pkg('collect-ws'),
-      '@sockeye/store-redis': pkg('store-redis'),
-      '@sockeye/ui': pkg('ui'),
+      '@sockeye-js/core': pkg('core'),
+      '@sockeye-js/store-memory': pkg('store-memory'),
+      '@sockeye-js/collect-websocket': pkg('collect-websocket'),
+      '@sockeye-js/collect-socketio': pkg('collect-socketio'),
+      '@sockeye-js/collect-ws': pkg('collect-ws'),
+      '@sockeye-js/store-redis': pkg('store-redis'),
+      '@sockeye-js/ui': pkg('ui'),
     },
   },
   test: {

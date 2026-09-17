@@ -1,5 +1,5 @@
 {
-  "name": "@sockeye/collect-websocket",
+  "name": "@sockeye-js/collect-websocket",
   "version": "0.1.0",
   "description": "Framework-free sockeye collector: report WebSocket messages yourself, from any transport.",
   "license": "AGPL-3.0-or-later",
@@ -31,7 +31,7 @@
     "build": "tsup"
   },
   "dependencies": {
-    "@sockeye/core": "workspace:^"
+    "@sockeye-js/core": "workspace:^"
   },
   "keywords": [
     "websocket",

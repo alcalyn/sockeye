@@ -4,7 +4,7 @@ import {
   monotonicNow,
   type CollectorOptions,
   type StoreWriterInterface,
-} from '@sockeye/core';
+} from '@sockeye-js/core';
 
 /**
  * Structural shapes of the socket.io objects we touch. Typed here rather than imported,

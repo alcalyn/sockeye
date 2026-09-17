@@ -1,15 +1,15 @@
-# @sockeye/collect-ws
+# @sockeye-js/collect-ws
 
 Collector for the [`ws`](https://github.com/websockets/ws) library, part of
 [sockeye](../../README.md).
 
 ```bash
-npm install @sockeye/collect-ws @sockeye/store-memory
+npm install @sockeye-js/collect-ws @sockeye-js/store-memory
 ```
 
 ```ts
-import { attachWsMonitor } from '@sockeye/collect-ws';
-import { createMemoryStore } from '@sockeye/store-memory';
+import { attachWsMonitor } from '@sockeye-js/collect-ws';
+import { createMemoryStore } from '@sockeye-js/store-memory';
 
 const store = createMemoryStore();
 attachWsMonitor(wss, store);
@@ -44,7 +44,7 @@ attachWsMonitor(wss, store, {
 
 `ws` has no acknowledgement mechanism, so there is nothing to time automatically. If your
 protocol has a notion of a reply, measure it with
-[`@sockeye/collect-websocket`](../collect-websocket):
+[`@sockeye-js/collect-websocket`](../collect-websocket):
 
 ```ts
 const pending = monitor.start('report:generate', payload);

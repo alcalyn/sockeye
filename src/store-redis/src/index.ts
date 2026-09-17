@@ -27,7 +27,7 @@ import {
   type WindowOptions,
   type WindowRange,
   type WindowSpec,
-} from '@sockeye/core';
+} from '@sockeye-js/core';
 
 /**
  * Minimal shape of an `ioredis` client. Typed structurally so this package never forces

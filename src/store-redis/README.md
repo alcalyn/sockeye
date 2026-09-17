@@ -1,15 +1,15 @@
-# @sockeye/store-redis
+# @sockeye-js/store-redis
 
 Redis store for [sockeye](../../README.md): every instance of your app feeds a single
 dashboard, and the metrics survive a restart.
 
 ```bash
-npm install @sockeye/store-redis ioredis
+npm install @sockeye-js/store-redis ioredis
 ```
 
 ```ts
 import Redis from 'ioredis';
-import { createRedisStore } from '@sockeye/store-redis';
+import { createRedisStore } from '@sockeye-js/store-redis';
 
 const store = createRedisStore(new Redis(process.env.REDIS_URL));
 ```

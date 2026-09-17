@@ -1,7 +1,7 @@
 import type { AddressInfo } from 'node:net';
 import { WebSocket, WebSocketServer } from 'ws';
 import { afterEach, describe, expect, it } from 'vitest';
-import { MemoryStore } from '@sockeye/store-memory';
+import { MemoryStore } from '@sockeye-js/store-memory';
 import { BINARY, attachWsMonitor, type WsMonitorOptions } from '../src/index.js';
 
 async function until<T>(check: () => T | Promise<T>, timeout = 3000): Promise<T> {

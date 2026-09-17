@@ -4,9 +4,9 @@
     "noEmit": true,
     "types": ["node"],
     "paths": {
-      "@sockeye/core": ["./src/core/src/index.ts"],
-      "@sockeye/store-memory": ["./src/store-memory/src/index.ts"],
-      "@sockeye/collect-websocket": ["./src/collect-websocket/src/index.ts"]
+      "@sockeye-js/core": ["./src/core/src/index.ts"],
+      "@sockeye-js/store-memory": ["./src/store-memory/src/index.ts"],
+      "@sockeye-js/collect-websocket": ["./src/collect-websocket/src/index.ts"]
     }
   },
   "include": ["src/*/src/**/*.ts", "src/*/test/**/*.ts", "vitest.config.ts"]

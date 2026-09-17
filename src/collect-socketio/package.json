@@ -1,5 +1,5 @@
 {
-  "name": "@sockeye/collect-socketio",
+  "name": "@sockeye-js/collect-socketio",
   "version": "0.1.0",
   "description": "sockeye collector for socket.io: one middleware, and every event is measured.",
   "license": "AGPL-3.0-or-later",
@@ -31,7 +31,7 @@
     "build": "tsup"
   },
   "dependencies": {
-    "@sockeye/core": "workspace:^"
+    "@sockeye-js/core": "workspace:^"
   },
   "peerDependencies": {
     "socket.io": ">=4"

@@ -1,4 +1,4 @@
-# @sockeye/core
+# @sockeye-js/core
 
 Shared foundation of [sockeye](../../README.md): the types every package agrees on,
 the two store interfaces, and the statistics primitives.
@@ -7,7 +7,7 @@ You only need it directly to **write your own store or collector**. Collectors a
 already depend on it.
 
 ```bash
-npm install @sockeye/core
+npm install @sockeye-js/core
 ```
 
 ## What is in it
@@ -28,7 +28,7 @@ npm install @sockeye/core
 ## Writing a store
 
 ```ts
-import { StatsAggregator, seriesKey, type MessageEvent, type StoreWriterInterface } from '@sockeye/core';
+import { StatsAggregator, seriesKey, type MessageEvent, type StoreWriterInterface } from '@sockeye-js/core';
 
 class MyStore implements StoreWriterInterface {
   private series = new Map<string, StatsAggregator>();

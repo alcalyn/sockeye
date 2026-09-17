@@ -1,7 +1,7 @@
 import { createReadStream, existsSync, statSync } from 'node:fs';
 import { dirname, extname, join, normalize, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import type { StoreReaderInterface } from '@sockeye/core';
+import type { StoreReaderInterface } from '@sockeye-js/core';
 import { createApiHandler, type ApiRequest } from './api.js';
 
 /** Minimal shapes of the node request/response, so express is never a dependency. */
@@ -118,7 +118,7 @@ export function dashboard(
     if (!existsSync(file)) {
       res.statusCode = 500;
       res.end(
-        'sockeye dashboard assets are missing. Build them with `pnpm --filter @sockeye/ui build`.',
+        'sockeye dashboard assets are missing. Build them with `pnpm --filter @sockeye-js/ui build`.',
       );
       return;
     }

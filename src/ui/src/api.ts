@@ -8,7 +8,7 @@ import type {
   TopEntry,
   TopKind,
   WindowRange,
-} from '@sockeye/core';
+} from '@sockeye-js/core';
 
 export interface ApiRequest {
   method: string;

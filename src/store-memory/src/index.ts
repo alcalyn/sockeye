@@ -26,7 +26,7 @@ import {
   type WindowOptions,
   type WindowRange,
   type WindowSpec,
-} from '@sockeye/core';
+} from '@sockeye-js/core';
 
 /** Bucket every message falls into once `maxMessageTypes` is reached. */
 export const OTHER = '<other>';

@@ -3,7 +3,7 @@ import type { AddressInfo } from 'node:net';
 import { Server, type Socket } from 'socket.io';
 import { io as connect, type Socket as ClientSocket } from 'socket.io-client';
 import { afterEach, describe, expect, it } from 'vitest';
-import { MemoryStore } from '@sockeye/store-memory';
+import { MemoryStore } from '@sockeye-js/store-memory';
 import { monitorSocketIo, sockeye, type SocketIoMonitorOptions } from '../src/index.js';
 
 /** Retry until `check` passes, so tests never rely on an arbitrary delay. */

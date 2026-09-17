@@ -1,5 +1,5 @@
 {
-  "name": "@sockeye/store-memory",
+  "name": "@sockeye-js/store-memory",
   "version": "0.1.0",
   "description": "In-process store for sockeye: keeps WebSocket metrics in memory, with no external service.",
   "license": "AGPL-3.0-or-later",
@@ -31,7 +31,7 @@
     "build": "tsup"
   },
   "dependencies": {
-    "@sockeye/core": "workspace:^"
+    "@sockeye-js/core": "workspace:^"
   },
   "keywords": [
     "websocket",

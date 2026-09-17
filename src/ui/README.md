@@ -1,14 +1,14 @@
-# @sockeye/ui
+# @sockeye-js/ui
 
 The local dashboard of [sockeye](../../README.md): a REST API over your store, plus a
 small Vue SPA, in one mountable handler.
 
 ```bash
-npm install @sockeye/ui
+npm install @sockeye-js/ui
 ```
 
 ```ts
-import { dashboard } from '@sockeye/ui';
+import { dashboard } from '@sockeye-js/ui';
 
 app.use('/sockeye', dashboard(store));
 ```
@@ -63,7 +63,7 @@ dashboard only offers those.
 The API is framework-free underneath, useful for tests, or to feed your own UI:
 
 ```ts
-import { createApiHandler } from '@sockeye/ui';
+import { createApiHandler } from '@sockeye-js/ui';
 
 const handle = createApiHandler(store);
 const { status, body } = await handle({ method: 'GET', path: '/messages', query: { sort: 'latency' } });
@@ -72,7 +72,7 @@ const { status, body } = await handle({ method: 'GET', path: '/messages', query:
 ## Developing the SPA
 
 ```bash
-pnpm --filter @sockeye/ui dev:client
+pnpm --filter @sockeye-js/ui dev:client
 ```
 
 Vite proxies `/api` to an app serving the dashboard on `http://localhost:3000/sockeye`.

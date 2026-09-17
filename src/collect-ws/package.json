@@ -1,5 +1,5 @@
 {
-  "name": "@sockeye/collect-ws",
+  "name": "@sockeye-js/collect-ws",
   "version": "0.1.0",
   "description": "sockeye collector for the ws library: metrics for every frame sent and received.",
   "license": "AGPL-3.0-or-later",
@@ -31,7 +31,7 @@
     "build": "tsup"
   },
   "dependencies": {
-    "@sockeye/core": "workspace:^"
+    "@sockeye-js/core": "workspace:^"
   },
   "peerDependencies": {
     "ws": ">=7"

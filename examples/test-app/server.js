@@ -10,9 +10,9 @@ import { spawn } from 'node:child_process';
 import { createServer } from 'node:http';
 import express from 'express';
 import { Server } from 'socket.io';
-import { sockeye } from '@sockeye/collect-socketio';
-import { createMemoryStore } from '@sockeye/store-memory';
-import { dashboard } from '@sockeye/ui';
+import { sockeye } from '@sockeye-js/collect-socketio';
+import { createMemoryStore } from '@sockeye-js/store-memory';
+import { dashboard } from '@sockeye-js/ui';
 
 const PORT = Number(process.env.PORT ?? 3000);
 
@@ -20,7 +20,7 @@ async function createStore() {
   if (process.env.STORE !== 'redis') return createMemoryStore();
 
   const { default: Redis } = await import('ioredis');
-  const { createRedisStore } = await import('@sockeye/store-redis');
+  const { createRedisStore } = await import('@sockeye-js/store-redis');
   const redis = new Redis(process.env.REDIS_URL ?? 'redis://127.0.0.1:6379/14');
   console.log('[demo] using the Redis store');
   return createRedisStore(redis, { prefix: 'sockeye-demo', flushIntervalMs: 500 });

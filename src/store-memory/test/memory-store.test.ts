@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { describeStoreContract } from '../../core/test/store-contract.js';
-import { ALL_TIME, DEFAULT_WINDOWS } from '@sockeye/core';
+import { ALL_TIME, DEFAULT_WINDOWS } from '@sockeye-js/core';
 import { MemoryStore, OTHER, createMemoryStore } from '../src/index.js';
 
 describeStoreContract('MemoryStore', {

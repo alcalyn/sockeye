@@ -1,13 +1,13 @@
-# @sockeye/store-memory
+# @sockeye-js/store-memory
 
 In-process store for [sockeye](../../README.md). No service to run, no configuration.
 
 ```bash
-npm install @sockeye/store-memory
+npm install @sockeye-js/store-memory
 ```
 
 ```ts
-import { createMemoryStore } from '@sockeye/store-memory';
+import { createMemoryStore } from '@sockeye-js/store-memory';
 
 const store = createMemoryStore();
 ```
@@ -46,7 +46,7 @@ await store.getTop('slowest', { window: '1h' });
 Choose the periods yourself by passing a `windows` list:
 
 ```ts
-import { ALL_TIME } from '@sockeye/core';
+import { ALL_TIME } from '@sockeye-js/core';
 
 createMemoryStore({
   windows: [
@@ -62,7 +62,7 @@ memory. `store.getWindows()` returns the list the dashboard offers.
 ## Caveats
 
 Metrics live in the process: they are lost on restart, and each instance of your app only
-knows about its own traffic. Use [`@sockeye/store-redis`](../store-redis) when you run
+knows about its own traffic. Use [`@sockeye-js/store-redis`](../store-redis) when you run
 more than one instance.
 
 ## License

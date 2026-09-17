@@ -1,5 +1,5 @@
 {
-  "name": "@sockeye/core",
+  "name": "@sockeye-js/core",
   "version": "0.1.0",
   "description": "Shared types, store interfaces and statistics primitives for sockeye.",
   "license": "AGPL-3.0-or-later",

@@ -326,6 +326,45 @@ heavy and deliberately slow messages so you can see the dashboard fill up.
 pnpm --filter sockeye-test-app start
 ```
 
+## Releasing
+
+Versions are managed with [changesets](https://github.com/changesets/changesets), and every
+package is released together under the same version (`fixed` in `.changeset/config.json`).
+
+**1. Describe your change.** In the branch or PR that changes something publishable:
+
+```bash
+pnpm changeset
+```
+
+Pick the packages you touched, pick `patch`, `minor` or `major`, and write the line that will
+end up in the changelog. This writes a markdown file in `.changeset/`: commit it with your
+change.
+
+**2. Merge to `main`.** The [release workflow](.github/workflows/release.yml) picks the
+changesets up and opens (or updates) a PR named *chore: version packages*, which bumps every
+version, updates the internal dependency ranges and writes the `CHANGELOG.md` files.
+
+**3. Merge the version PR.** On that merge, the same workflow runs `pnpm run release`
+(`pnpm build && changeset publish`), publishes every package that is not on npm yet, and tags
+the release.
+
+So the only manual steps are `pnpm changeset` and merging two PRs. Publishing needs an
+`NPM_TOKEN` secret on the repository, with publish rights on the `@sockeye-js` scope.
+
+### Releasing by hand
+
+If you ever need to publish outside CI:
+
+```bash
+pnpm changeset              # unless the changesets are already there
+pnpm version-packages       # changeset version + lockfile update
+git commit -am 'chore: version packages'
+npm login                   # must have access to the @sockeye-js scope
+pnpm release                # build + changeset publish
+git push --follow-tags
+```
+
 ## License
 
 This repository is under the [GNU AGPL v3.0 or later](LICENSE).

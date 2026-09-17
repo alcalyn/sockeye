@@ -1,24 +1,44 @@
 <script setup lang="ts">
 import { computed } from 'vue';
+import * as fmt from './format';
 import type { HistogramBucket } from './types';
+
+/** A bucket always carries a count; a timeline bucket also carries the bytes it moved. */
+type Bucket = HistogramBucket & { bytes?: number };
 
 const props = withDefaults(
   defineProps<{
-    buckets: HistogramBucket[];
+    buckets: Bucket[];
     /** How a bucket bound should be rendered (bytes, milliseconds, a time of day). */
     format: (value: number) => string;
-    /** What the vertical axis counts. */
+    /** What the vertical axis measures. */
     unit?: string;
+    /** Which number of a bucket the bars stand for. */
+    metric?: 'count' | 'bytes';
   }>(),
-  { unit: 'messages' },
+  { unit: 'messages', metric: 'count' },
 );
 
-const peak = computed(() => Math.max(1, ...props.buckets.map((bucket) => bucket.count)));
+/** The number the bars stand for, whichever of the two the chart was asked for. */
+function value(bucket: Bucket): number {
+  return props.metric === 'bytes' ? (bucket.bytes ?? 0) : bucket.count;
+}
 
-/** Round the top of the scale up to something readable: 1, 2, 5, 10, 20, 50… */
+function formatValue(amount: number): string {
+  return props.metric === 'bytes' ? fmt.bytes(amount) : amount.toLocaleString();
+}
+
+const peak = computed(() => Math.max(1, ...props.buckets.map(value)));
+
+/**
+ * Round the top of the scale up to something readable: 1, 2, 5, 10, 20, 50… Bytes climb
+ * by 1024 rather than by 10, so that a gridline lands on a round kB or MB.
+ */
 const scaleMax = computed(() => {
-  const magnitude = 10 ** Math.floor(Math.log10(peak.value));
-  const step = [1, 2, 5, 10].find((candidate) => candidate * magnitude >= peak.value) ?? 10;
+  const base = props.metric === 'bytes' ? 1024 : 10;
+  const magnitude = base ** Math.floor(Math.log(peak.value) / Math.log(base));
+  const steps = base === 1024 ? [1, 2, 5, 10, 20, 50, 100, 200, 500, 1024] : [1, 2, 5, 10];
+  const step = steps.find((candidate) => candidate * magnitude >= peak.value) ?? base;
   return step * magnitude;
 });
 
@@ -52,14 +72,14 @@ const xTicks = computed(() => {
   });
 });
 
-const title = (bucket: HistogramBucket): string =>
-  `${props.format(bucket.from)} - ${props.format(bucket.to)}: ${bucket.count.toLocaleString()} ${props.unit}`;
+const title = (bucket: Bucket): string =>
+  `${props.format(bucket.from)} - ${props.format(bucket.to)}: ${formatValue(value(bucket))} ${props.unit}`;
 </script>
 
 <template>
   <div v-if="buckets.length" class="chart">
     <div class="y-axis">
-      <span v-for="tick in yTicks" :key="tick">{{ tick.toLocaleString() }}</span>
+      <span v-for="tick in yTicks" :key="tick">{{ formatValue(tick) }}</span>
     </div>
 
     <div class="plot">
@@ -69,7 +89,7 @@ const title = (bucket: HistogramBucket): string =>
         v-for="bucket in buckets"
         :key="bucket.from"
         class="col"
-        :style="{ height: `${Math.max(1.5, (bucket.count / scaleMax) * 100)}%` }"
+        :style="{ height: `${Math.max(1.5, (value(bucket) / scaleMax) * 100)}%` }"
         :title="title(bucket)"
       />
     </div>

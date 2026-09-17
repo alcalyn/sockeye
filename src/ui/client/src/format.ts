@@ -35,17 +35,24 @@ export function rate(total: number, from: number | null, to: number | null): str
 /** Short description of the period a set of numbers covers. */
 export function coverage(window: { from: number; to: number; resolutionMs: number } | null): string {
   if (!window) return 'everything since collection started';
-  const unit =
-    window.resolutionMs >= 86_400_000 ? 'day' : window.resolutionMs >= 3_600_000 ? 'hour' : 'minute';
-  return `${new Date(window.from).toLocaleString()} → ${new Date(window.to).toLocaleString()} · by the ${unit}`;
+  return `${new Date(window.from).toLocaleString()} → ${new Date(window.to).toLocaleString()} · every ${unit(window.resolutionMs)}`;
 }
 
-/** Name of a bucket length: `minute`, `hour`, `day`. */
+const PERIODS: [ms: number, name: string][] = [
+  [86_400_000, 'day'],
+  [3_600_000, 'hour'],
+  [60_000, 'minute'],
+  [1_000, 'second'],
+];
+
+/**
+ * Name a length of time the way someone would say it: `minute`, `30 minutes`, `4 hours`.
+ * Chart steps are never a round unit for long periods, so the number has to be said too.
+ */
 export function unit(resolutionMs: number): string {
-  if (resolutionMs >= 86_400_000) return 'day';
-  if (resolutionMs >= 3_600_000) return 'hour';
-  if (resolutionMs >= 60_000) return 'minute';
-  return 'bucket';
+  const [size, name] = PERIODS.find(([ms]) => resolutionMs >= ms) ?? [1, 'moment'];
+  const amount = Math.round(resolutionMs / size);
+  return amount === 1 ? name : `${amount} ${name}s`;
 }
 
 /**

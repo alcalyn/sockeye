@@ -4,9 +4,7 @@ import HistogramChart from './HistogramChart.vue';
 import PayloadSamples from './PayloadSamples.vue';
 import { fetchMessage } from './api';
 import * as fmt from './format';
-import type { MessageDetail, TimelineBucket } from './types';
-
-const EMPTY_BUCKET: TimelineBucket = { from: 0, to: 0, count: 0, bytes: 0 };
+import type { MessageDetail } from './types';
 
 /** Length of one history bucket, which drives how its axis is labelled. */
 function bucketSize(detail: MessageDetail): number {
@@ -16,11 +14,6 @@ function bucketSize(detail: MessageDetail): number {
 
 function bucketUnit(detail: MessageDetail): string {
   return fmt.unit(bucketSize(detail));
-}
-
-/** The newest bucket: the one still filling up right now. */
-function currentBucket(detail: MessageDetail): TimelineBucket {
-  return detail.timeline[detail.timeline.length - 1] ?? EMPTY_BUCKET;
 }
 
 /** Examples from every direction of this message, heaviest first. */
@@ -144,17 +137,19 @@ onBeforeUnmount(() => {
           </div>
         </dl>
 
-        <h2>
-          Over time: how many messages per {{ bucketUnit(detail) }}
-          <span class="muted" style="text-transform: none; letter-spacing: 0">
-            · {{ fmt.count(currentBucket(detail).count) }} in the current
-            {{ bucketUnit(detail) }}
-          </span>
-        </h2>
+        <h2>Over time: how many messages per {{ bucketUnit(detail) }}</h2>
         <HistogramChart
           :buckets="detail.timeline"
           :format="fmt.clockFor(bucketSize(detail))"
           unit="messages"
+        />
+
+        <h2>Over time: bandwidth per {{ bucketUnit(detail) }}</h2>
+        <HistogramChart
+          :buckets="detail.timeline"
+          :format="fmt.clockFor(bucketSize(detail))"
+          metric="bytes"
+          unit="bandwidth"
         />
 
         <h2>Payload sizes: how many messages per size</h2>

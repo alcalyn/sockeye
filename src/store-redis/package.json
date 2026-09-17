@@ -1,8 +1,16 @@
 {
   "name": "@sockeye/store-redis",
-  "version": "0.1.0",
+  "version": "0.0.0",
   "description": "Redis store for sockeye: share WebSocket metrics across every instance of your app.",
   "license": "AGPL-3.0-or-later",
+  "author": "Julien Maulny (https://github.com/alcalyn)",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alcalyn/sockeye.git",
+    "directory": "src/store-redis"
+  },
+  "homepage": "https://github.com/alcalyn/sockeye/tree/main/src/store-redis#readme",
+  "bugs": "https://github.com/alcalyn/sockeye/issues",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

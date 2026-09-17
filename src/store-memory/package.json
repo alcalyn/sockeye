@@ -1,8 +1,16 @@
 {
   "name": "@sockeye/store-memory",
-  "version": "0.1.0",
+  "version": "0.0.0",
   "description": "In-process store for sockeye: keeps WebSocket metrics in memory, with no external service.",
   "license": "AGPL-3.0-or-later",
+  "author": "Julien Maulny (https://github.com/alcalyn)",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alcalyn/sockeye.git",
+    "directory": "src/store-memory"
+  },
+  "homepage": "https://github.com/alcalyn/sockeye/tree/main/src/store-memory#readme",
+  "bugs": "https://github.com/alcalyn/sockeye/issues",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

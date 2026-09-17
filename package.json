@@ -4,6 +4,13 @@
   "private": true,
   "description": "Monitor WebSocket traffic of your server app: volume, payload size, bandwidth and response time per message type.",
   "license": "AGPL-3.0-or-later",
+  "author": "Julien Maulny (https://github.com/alcalyn)",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alcalyn/sockeye.git"
+  },
+  "homepage": "https://github.com/alcalyn/sockeye#readme",
+  "bugs": "https://github.com/alcalyn/sockeye/issues",
   "scripts": {
     "build": "pnpm -r build",
     "test": "vitest run",
@@ -11,6 +18,7 @@
     "typecheck": "tsc -b --pretty",
     "clean": "rm -rf src/*/dist src/*/*.tsbuildinfo",
     "changeset": "changeset",
+    "version-packages": "changeset version && pnpm install --lockfile-only",
     "release": "pnpm build && changeset publish"
   },
   "devDependencies": {

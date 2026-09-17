@@ -1,8 +1,16 @@
 {
   "name": "@sockeye/collect-websocket",
-  "version": "0.1.0",
+  "version": "0.0.0",
   "description": "Framework-free sockeye collector: report WebSocket messages yourself, from any transport.",
   "license": "AGPL-3.0-or-later",
+  "author": "Julien Maulny (https://github.com/alcalyn)",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alcalyn/sockeye.git",
+    "directory": "src/collect-websocket"
+  },
+  "homepage": "https://github.com/alcalyn/sockeye/tree/main/src/collect-websocket#readme",
+  "bugs": "https://github.com/alcalyn/sockeye/issues",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

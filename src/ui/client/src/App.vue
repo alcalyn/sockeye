@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import AppFooter from './AppFooter.vue';
 import CardSparkline from './CardSparkline.vue';
 import MessageDrawer from './MessageDrawer.vue';
 import MessagesTable from './MessagesTable.vue';
@@ -211,5 +212,7 @@ const period = computed(() => {
       :paused="paused"
       @close="selected = null"
     />
+
+    <AppFooter />
   </div>
 </template>

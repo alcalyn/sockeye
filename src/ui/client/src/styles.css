@@ -1,0 +1,492 @@
+/*
+ * Dark is the base palette. The light one applies when the system asks for it, unless the
+ * viewer forced dark, and always when the viewer forced light.
+ */
+:root {
+  --bg: #0f1117;
+  --surface: #171a23;
+  --surface-2: #1e222d;
+  --border: #272c39;
+  --text: #e6e9ef;
+  --muted: #8b93a7;
+  --accent: #5b9cff;
+  --in: #4ade80;
+  --out: #fbbf24;
+  --danger: #f87171;
+  --radius: 10px;
+  color-scheme: dark;
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme='dark']) {
+    --bg: #f6f7f9;
+    --surface: #ffffff;
+    --surface-2: #f0f2f6;
+    --border: #e1e4ea;
+    --text: #1a1d24;
+    --muted: #6b7280;
+    --accent: #2563eb;
+    --in: #16a34a;
+    --out: #b45309;
+    --danger: #dc2626;
+    color-scheme: light;
+  }
+}
+
+:root[data-theme='light'] {
+  --bg: #f6f7f9;
+  --surface: #ffffff;
+  --surface-2: #f0f2f6;
+  --border: #e1e4ea;
+  --text: #1a1d24;
+  --muted: #6b7280;
+  --accent: #2563eb;
+  --in: #16a34a;
+  --out: #b45309;
+  --danger: #dc2626;
+  color-scheme: light;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 14px/1.5 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+.app {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px 16px 64px;
+}
+
+header.topbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+header.topbar h1 {
+  font-size: 18px;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+header.topbar .spacer {
+  flex: 1;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+/* Buttons and selects share one shape, so a toolbar row lines up exactly. */
+button,
+select {
+  font: inherit;
+  height: 30px;
+  padding: 0 10px;
+  color: var(--text);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  line-height: normal;
+  cursor: pointer;
+}
+
+button:hover,
+select:hover {
+  border-color: var(--accent);
+}
+
+button.ghost {
+  background: transparent;
+}
+
+/* The theme switch: one square, one glyph, no label. */
+button.icon-button {
+  background: transparent;
+  border-color: transparent;
+  /* Wide enough that the glyph swap never shifts the toolbar. */
+  width: 34px;
+  padding: 0;
+  font-size: 15px;
+  text-align: center;
+}
+
+button.icon-button:hover {
+  border-color: var(--border);
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.card {
+  position: relative;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  /* The sparkline is drawn to the card's edges; the rounded corners clip it. */
+  overflow: hidden;
+}
+
+/* Background chart: the history behind the number, never in front of the text. */
+.card .sparkline {
+  position: absolute;
+  inset: auto 0 0;
+  width: 100%;
+  height: 70%;
+  pointer-events: none;
+}
+
+.card .sparkline .fill {
+  fill: var(--accent);
+  opacity: 0.07;
+}
+
+.card .sparkline .stroke {
+  fill: none;
+  stroke: var(--accent);
+  /* preserveAspectRatio="none" stretches the box, so ask for the width in user units. */
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+  opacity: 0.28;
+}
+
+.card > .label,
+.card > .value,
+.card > .hint {
+  position: relative;
+}
+
+.card .label {
+  color: var(--muted);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.card .value {
+  font-size: 22px;
+  font-weight: 600;
+  margin-top: 4px;
+}
+
+.card .hint {
+  color: var(--muted);
+  font-size: 12px;
+  margin-top: 2px;
+}
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 20px;
+  overflow: hidden;
+}
+
+.panel > h2 {
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  margin: 0;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  text-align: left;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+/* Auto layout spreads the spare width across every column; the name just gets a floor. */
+th:first-child,
+td:first-child {
+  min-width: 220px;
+}
+
+th {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted);
+  user-select: none;
+}
+
+th.sortable {
+  cursor: pointer;
+}
+
+th.sortable:hover {
+  color: var(--text);
+}
+
+th.active {
+  color: var(--accent);
+}
+
+tbody tr {
+  cursor: pointer;
+}
+
+tbody tr:hover {
+  background: var(--surface-2);
+}
+
+tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.tag {
+  display: inline-block;
+  font-size: 11px;
+  padding: 1px 6px;
+  margin-left: 10px;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+  vertical-align: 1px;
+}
+
+.tag.in {
+  color: var(--in);
+}
+
+.tag.out {
+  color: var(--out);
+}
+
+.columns {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 20px;
+}
+
+.bar-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: center;
+  padding: 7px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.bar-row:last-child {
+  border-bottom: none;
+}
+
+.bar-row .bar {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--accent);
+  opacity: 0.55;
+  margin-top: 6px;
+}
+
+.payload {
+  grid-column: 1 / -1;
+  margin: 8px 0 2px;
+  padding: 8px 10px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 260px;
+  overflow: auto;
+  color: var(--muted);
+}
+
+.link {
+  background: none;
+  border: none;
+  height: auto;
+  padding: 0;
+  margin-left: 10px;
+  color: var(--accent);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.link:hover {
+  border-color: transparent;
+}
+
+.link:hover {
+  text-decoration: underline;
+}
+
+td .cell-bar {
+  height: 3px;
+  border-radius: 2px;
+  background: var(--accent);
+  opacity: 0.5;
+  margin-top: 5px;
+  /* The numbers are right-aligned, but the bars grow from the left like everywhere else. */
+  margin-right: auto;
+  min-width: 1px;
+}
+
+tbody tr:hover td .cell-bar {
+  opacity: 0.85;
+}
+
+.empty {
+  padding: 24px 16px;
+  color: var(--muted);
+  text-align: center;
+}
+
+.error {
+  border: 1px solid var(--danger);
+  color: var(--danger);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  margin-bottom: 16px;
+}
+
+.drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: flex-end;
+}
+
+.drawer {
+  background: var(--bg);
+  border-left: 1px solid var(--border);
+  width: min(560px, 100%);
+  height: 100%;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+.chart {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: 120px auto;
+  column-gap: 8px;
+  row-gap: 4px;
+  padding: 12px 16px 16px;
+}
+
+.chart .y-axis {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-end;
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+  /* Line the numbers up with the gridlines they label. */
+  margin: -0.5em 0;
+}
+
+.chart .plot {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  border-left: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.chart .gridline {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-top: 1px dashed var(--border);
+  pointer-events: none;
+}
+
+.chart .col {
+  position: relative;
+  flex: 1;
+  background: var(--accent);
+  opacity: 0.7;
+  border-radius: 2px 2px 0 0;
+  min-height: 2px;
+}
+
+.chart .col:hover {
+  opacity: 1;
+}
+
+.chart .axis-name {
+  font-size: 10px;
+  color: var(--muted);
+  text-align: right;
+  align-self: start;
+}
+
+.chart .x-axis {
+  position: relative;
+  height: 14px;
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+}
+
+.chart .x-axis span {
+  position: absolute;
+  white-space: nowrap;
+}
+
+dl.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+  gap: 10px;
+  margin: 0;
+  padding: 12px 16px;
+}
+
+dl.stats dt {
+  font-size: 11px;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+
+dl.stats dd {
+  margin: 2px 0 0;
+  font-variant-numeric: tabular-nums;
+}
+
+td.num,
+dl.stats dd {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Sits under the table, on the panel's own background. */
+.truncated {
+  margin: 0;
+  padding: 8px 16px;
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+  text-align: center;
+}

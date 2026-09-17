@@ -1,0 +1,49 @@
+{
+  "name": "@sockeye/collect-socketio",
+  "version": "0.1.0",
+  "description": "sockeye collector for socket.io: one middleware, and every event is measured.",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "sideEffects": false,
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "tsup"
+  },
+  "dependencies": {
+    "@sockeye/core": "workspace:^"
+  },
+  "peerDependencies": {
+    "socket.io": ">=4"
+  },
+  "peerDependenciesMeta": {
+    "socket.io": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "socket.io": "^4.8.1",
+    "socket.io-client": "^4.8.1"
+  },
+  "keywords": [
+    "socket.io",
+    "websocket",
+    "monitoring",
+    "metrics"
+  ],
+  "publishConfig": {
+    "access": "public"
+  }
+}

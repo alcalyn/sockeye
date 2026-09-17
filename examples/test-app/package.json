@@ -1,0 +1,23 @@
+{
+  "name": "sockeye-test-app",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Demo socket.io app used to exercise sockeye end to end. Never published.",
+  "license": "MIT",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "traffic": "node traffic.js"
+  },
+  "dependencies": {
+    "@sockeye/collect-socketio": "workspace:*",
+    "@sockeye/store-memory": "workspace:*",
+    "@sockeye/store-redis": "workspace:*",
+    "@sockeye/ui": "workspace:*",
+    "express": "^4.21.2",
+    "ioredis": "^5.4.2",
+    "socket.io": "^4.8.1",
+    "socket.io-client": "^4.8.1"
+  }
+}

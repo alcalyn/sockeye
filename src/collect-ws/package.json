@@ -1,0 +1,49 @@
+{
+  "name": "@sockeye/collect-ws",
+  "version": "0.1.0",
+  "description": "sockeye collector for the ws library: metrics for every frame sent and received.",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "sideEffects": false,
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "tsup"
+  },
+  "dependencies": {
+    "@sockeye/core": "workspace:^"
+  },
+  "peerDependencies": {
+    "ws": ">=7"
+  },
+  "peerDependenciesMeta": {
+    "ws": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@types/ws": "^8.5.13",
+    "ws": "^8.18.0"
+  },
+  "keywords": [
+    "websocket",
+    "ws",
+    "monitoring",
+    "metrics"
+  ],
+  "publishConfig": {
+    "access": "public"
+  }
+}

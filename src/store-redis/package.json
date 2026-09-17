@@ -1,0 +1,43 @@
+{
+  "name": "@sockeye/store-redis",
+  "version": "0.1.0",
+  "description": "Redis store for sockeye: share WebSocket metrics across every instance of your app.",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "sideEffects": false,
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "tsup"
+  },
+  "dependencies": {
+    "@sockeye/core": "workspace:^"
+  },
+  "peerDependencies": {
+    "ioredis": ">=5"
+  },
+  "devDependencies": {
+    "ioredis": "^5.4.2"
+  },
+  "keywords": [
+    "websocket",
+    "monitoring",
+    "metrics",
+    "redis"
+  ],
+  "publishConfig": {
+    "access": "public"
+  }
+}

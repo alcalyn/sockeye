@@ -1,0 +1,36 @@
+{
+  "name": "@sockeye/collect-websocket",
+  "version": "0.1.0",
+  "description": "Framework-free sockeye collector: report WebSocket messages yourself, from any transport.",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "sideEffects": false,
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "tsup"
+  },
+  "dependencies": {
+    "@sockeye/core": "workspace:^"
+  },
+  "keywords": [
+    "websocket",
+    "monitoring",
+    "metrics"
+  ],
+  "publishConfig": {
+    "access": "public"
+  }
+}

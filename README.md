@@ -1,21 +1,20 @@
 # sockeye
 
-Know which WebSocket messages your app actually spends its time and bandwidth on.
+Monitor websocket messages of your app.
 
-sockeye sits on your server, measures every message going in and out, and gives you
-a dashboard answering the questions you cannot answer today:
+Add sockeye on your nodejs app to collect websocket messages, and get metrics about:
 
 - which messages are sent the most?
 - which ones carry the heaviest payloads?
 - which ones eat the most bandwidth?
-- which ones take the longest to answer (median, p95, p99)?
-- what are the 10 slowest and the 10 heaviest messages, and what was inside them?
-- and all of that over the last 5 minutes, the last hour, or since the start?
+- which ones take the longest to answer (median, p95, p99)? (when using `ack` from socket.io)
+- what are the 10 slowest and the 10 heaviest messages, and what was inside them
+- and all of that over the last 5 minutes, the last hour, or since the start
 
-It works with **socket.io**, **ws**, and any other transport, and stores its metrics
-**in memory** or **in Redis**. Everything is split into small packages: install only what you use.
-
----
+Supports:
+- [socket.io](https://socket.io/)
+- [websockets/ws](https://github.com/websockets/ws)
+- and native or any other websocket server with a function to track your events
 
 ## Install
 
@@ -36,58 +35,36 @@ import { sockeye } from '@sockeye-js/collect-socketio';
 import { createMemoryStore } from '@sockeye-js/store-memory';
 import { dashboard } from '@sockeye-js/ui';
 
-const store = createMemoryStore();
+const store = createMemoryStore();      // in memory, but can use a persistent storage like redis
 
-io.use(sockeye(store));                  // collect
-app.use('/sockeye', dashboard(store));  // and look at it
+io.use(sockeye(store));                 // collect
+app.use('/sockeye', dashboard(store));  // plug the dashboard, but you can put it behind a basic auth
 ```
 
-Open <http://localhost:3000/sockeye/>. That is the whole setup: overview cards, a
-sortable table of every message type with its count, total data, payload size and response
-time, and the top 10 slowest and heaviest messages. Pick a period in the toolbar to narrow
-every figure down to it.
+Open <http://localhost:3000/sockeye/>.
 
----
+That's it.
 
 ## How it works
 
 A **collector** hooks into your WebSocket server and turns every message into an event.
 A **store** aggregates those events. The **dashboard** reads the store.
 
-```
-socket.io / ws / your code  ──▶  collector  ──▶  store  ──▶  dashboard
-                                              (memory, redis, your own)
-```
-
 Nothing is kept per message: each message type holds a few counters and two histograms, so
 memory usage stays constant whatever the traffic.
 
 ### Periods
 
-Every figure can be read over a period: last minute, 5 minutes, 15 minutes, hour, 6 hours,
-24 hours, 7 days, or everything since the start. Pick it from the dropdown in the dashboard,
-or with `?window=5m` on the API.
-
-Each period is cut into `slots` buckets: the last hour into 60 one-minute buckets, the last
-week into 7 one-day buckets. A message is counted in the current bucket of every period, and
-a period is answered by adding up its buckets, so asking for a different period costs
-nothing at record time.
-
-Buckets are whole, and the newest one is still filling up, so a period is always rounded
-outwards. The dashboard shows the range actually covered, and the API returns it in
-`overview.window`.
-
-#### Changing the periods
-
-Pass a `windows` list, with a key, a label, a length, and how many buckets it holds:
+You can customize periods and/or add more granularity, example:
 
 ```ts
 import { ALL_TIME } from '@sockeye-js/core';
 
 createMemoryStore({
   windows: [
-    { key: '30s', label: 'Last 30 seconds', ms: 30_000, slots: 30 }, // one per second
-    { key: '1d', label: 'Last day', ms: 86_400_000, slots: 72 }, // 20-minute steps
+    { key: '30s', label: 'Last 30 seconds', ms: 30_000, slots: 60 }, // short period with 500ms resolution
+    { key: '1d', label: 'Last day', ms: 86_400_000, slots: 288 }, // day period with 5 minutes resolution
+    { key: '1month', label: 'Last 30 days', ms: 2_592_000_000, slots: 30 * 12 }, // month period with 12h resolution
     ALL_TIME,
   ],
 });
@@ -99,22 +76,15 @@ included or not, so it only ever shows what the store can actually answer.
 
 ### Payload previews
 
-Seeing a 400 kB message at the top of the heaviest list only helps if you can tell what was
-inside it, so sockeye keeps a **truncated copy of the payload**, 1024 characters by
-default, on the messages worth looking at:
+You can debug biggest payload of each type of message.
 
-- the entries of the global top 10 lists;
-- the five biggest messages of **every** message type, so the detail view always has a real
-  example of what that message carries, even for a type that never reaches the global top
-  (`samplesPerMessage` on both stores, `0` to disable).
-
-Nothing else holds message content: the aggregated stats are counters and histograms only.
+Store will keep top biggest payloads (first 1kb) so you can see how it looks like.
 
 If your messages carry data that should not land on a dashboard, turn it off or redact it:
 
 ```ts
-io.use(sockeye(store, { capturePayload: false }));
-io.use(sockeye(store, { redactSample: (sample) => sample.replace(/"token":"[^"]*"/g, '"token":"***"') }));
+io.use(sockeye(store, { capturePayload: false })); // disable it
+io.use(sockeye(store, { redactSample: (sample) => sample.replace(/"token":"[^"]*"/g, '"token":"***"') })); // do not keep sensitive data
 ```
 
 ### Where response times come from
@@ -130,8 +100,6 @@ recorded immediately, so it is never lost when the reply never comes.
 For transports with no such concept, you close the timing window yourself: see
 [Any other transport](#any-other-transport).
 
----
-
 ## Packages
 
 | Package | What it does |
@@ -145,8 +113,6 @@ For transports with no such concept, you close the timing window yourself: see
 | [`@sockeye-js/core`](src/core) | Types, store interfaces and the statistics primitives |
 
 Collectors and stores are independent: any collector works with any store.
-
----
 
 ## Going further
 
@@ -167,8 +133,8 @@ or `action` field, and binary frames are grouped under `<binary>`.
 
 ### Any other transport
 
-The lowest-level collector works with the browser `WebSocket` API, a raw socket, or anything
-else. You call it:
+If you use another socket server not natively supported,
+you can still branch monitoring where you receive and send websocket messages:
 
 ```ts
 import { createMonitor } from '@sockeye-js/collect-websocket';
@@ -231,9 +197,9 @@ app.use('/sockeye', dashboard(store, { serveClient: false }));
 | `GET /api/windows` | The periods this store can answer for |
 | `POST /api/reset` | Drops every metric |
 
-Every read endpoint takes `?window=` (`1m`, `5m`, `1h`, `24h`, `7d`, `all`…).
+Every read endpoint takes `?window=` (`1m`, `5m`, `1h`, `24h`, `7d`, `all`...).
 
-The API is framework-free underneath, if you would rather wire it up yourself:
+To serve dashboard with any nodejs framework, use this lower level function:
 
 ```ts
 import { createApiHandler } from '@sockeye-js/ui';
@@ -241,8 +207,6 @@ import { createApiHandler } from '@sockeye-js/ui';
 const handle = createApiHandler(store);
 const response = await handle({ method: 'GET', path: '/overview' });
 ```
-
----
 
 ## Collector options
 
@@ -263,22 +227,6 @@ carrying its payload size, whatever the number of recipients.
 
 A collector never throws into your app: if the store is down or a payload cannot be measured,
 the error goes to `onError` and your messages keep flowing.
-
----
-
-## Accuracy and memory
-
-Percentiles come from a log-linear histogram rather than from a list of samples, which is
-what keeps memory constant. Values under 32 (bytes or milliseconds) are exact; above that,
-the reported median, p95 and p99 stay within ~2% of the real value. Counters, totals,
-maxima and the top 10 lists are exact.
-
-Only the buckets a message actually hit are stored, which is what makes keeping 91 time
-buckets per message type affordable: a busy one costs a few hundred kB, a quiet one a few kB.
-Past 1000 distinct names, everything else is merged into `<other>`, so an id embedded in a
-message name cannot blow up the process (`maxMessageTypes` on both stores).
-
----
 
 ## Writing your own store
 
@@ -309,8 +257,6 @@ implements `StoreWriterInterface` alone. Stores the dashboard reads from impleme
 histograms, mergeable), `WindowedSeries` and `WindowedTops` (the whole time-window machinery),
 `TopN` (bounded top lists), `histogram` and `applyListOptions`.
 
----
-
 ## Development
 
 ```bash
@@ -318,6 +264,8 @@ pnpm install
 pnpm build
 pnpm test          # Redis tests are skipped when no Redis is reachable
 ```
+
+### App example
 
 A demo socket.io app lives in [`examples/test-app`](examples/test-app): it generates small,
 heavy and deliberately slow messages so you can see the dashboard fill up.
@@ -341,29 +289,19 @@ Pick the packages you touched, pick `patch`, `minor` or `major`, and write the l
 end up in the changelog. This writes a markdown file in `.changeset/`: commit it with your
 change.
 
-**2. Merge to `main`.** The [release workflow](.github/workflows/release.yml) picks the
-changesets up and opens (or updates) a PR named *chore: version packages*, which bumps every
-version, updates the internal dependency ranges and writes the `CHANGELOG.md` files.
-
-**3. Merge the version PR.** On that merge, the same workflow runs `pnpm run release`
-(`pnpm build && changeset publish`), publishes every package that is not on npm yet, and tags
-the release.
-
-So the only manual steps are `pnpm changeset` and merging two PRs. Publishing needs an
-`NPM_TOKEN` secret on the repository, with publish rights on the `@sockeye-js` scope.
-
-### Releasing by hand
-
-If you ever need to publish outside CI:
+**2. Publish.** Releases are cut by hand from `main`:
 
 ```bash
-pnpm changeset              # unless the changesets are already there
 pnpm version-packages       # changeset version + lockfile update
 git commit -am 'chore: version packages'
 npm login                   # must have access to the @sockeye-js scope
 pnpm release                # build + changeset publish
 git push --follow-tags
 ```
+
+`pnpm version-packages` bumps every version, updates the internal dependency ranges and
+writes the `CHANGELOG.md` files; `pnpm release` runs `pnpm build && changeset publish`,
+publishes every package that is not on npm yet, and tags the release.
 
 ## License
 

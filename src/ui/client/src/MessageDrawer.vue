@@ -142,6 +142,7 @@ onBeforeUnmount(() => {
           :buckets="detail.timeline"
           :format="fmt.clockFor(bucketSize(detail))"
           unit="messages"
+          time-axis
         />
 
         <h2>Over time: bandwidth per {{ bucketUnit(detail) }}</h2>
@@ -150,6 +151,7 @@ onBeforeUnmount(() => {
           :format="fmt.clockFor(bucketSize(detail))"
           metric="bytes"
           unit="bandwidth"
+          time-axis
         />
 
         <h2>Payload sizes: how many messages per size</h2>

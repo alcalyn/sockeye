@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import * as fmt from './format';
+import { useMarkers } from './markers';
 import type { HistogramBucket } from './types';
 
 /** A bucket always carries a count; a timeline bucket also carries the bytes it moved. */
@@ -15,9 +16,16 @@ const props = withDefaults(
     unit?: string;
     /** Which number of a bucket the bars stand for. */
     metric?: 'count' | 'bytes';
+    /**
+     * Whether the bucket bounds are moments in time. Only then do the viewer's markers
+     * mean anything: a payload size axis has no date to point at.
+     */
+    timeAxis?: boolean;
   }>(),
-  { unit: 'messages', metric: 'count' },
+  { unit: 'messages', metric: 'count', timeAxis: false },
 );
+
+const markers = useMarkers();
 
 /** The number the bars stand for, whichever of the two the chart was asked for. */
 function value(bucket: Bucket): number {
@@ -72,6 +80,33 @@ const xTicks = computed(() => {
   });
 });
 
+/**
+ * The viewer's markers that fall inside the period on screen, placed by interpolating
+ * between the first bucket's start and the last one's end.
+ */
+const marks = computed(() => {
+  const first = props.buckets[0];
+  const last = props.buckets[props.buckets.length - 1];
+  if (!props.timeAxis || !first || !last) return [];
+
+  const span = last.to - first.from;
+  if (span <= 0) return [];
+
+  return markers.value
+    .filter((marker) => marker.at >= first.from && marker.at <= last.to)
+    .map((marker) => {
+      const position = ((marker.at - first.from) / span) * 100;
+      return {
+        id: marker.id,
+        name: marker.name,
+        position,
+        title: `${marker.name} - ${new Date(marker.at).toLocaleString()}`,
+        // Past the middle, a label written to the right would run out of the plot.
+        flipped: position > 60,
+      };
+    });
+});
+
 const title = (bucket: Bucket): string =>
   `${props.format(bucket.from)} - ${props.format(bucket.to)}: ${formatValue(value(bucket))} ${props.unit}`;
 </script>
@@ -92,6 +127,17 @@ const title = (bucket: Bucket): string =>
         :style="{ height: `${Math.max(1.5, (value(bucket) / scaleMax) * 100)}%` }"
         :title="title(bucket)"
       />
+
+      <div
+        v-for="mark in marks"
+        :key="mark.id"
+        class="marker"
+        :class="{ flipped: mark.flipped }"
+        :style="{ left: `${mark.position}%` }"
+        :title="mark.title"
+      >
+        <span class="marker-label">{{ mark.name }}</span>
+      </div>
     </div>
 
     <span class="axis-name">{{ unit }}</span>

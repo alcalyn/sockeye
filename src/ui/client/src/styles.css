@@ -458,6 +458,114 @@ tbody tr:hover td .cell-bar {
   white-space: nowrap;
 }
 
+/*
+ * A marker: one named moment, drawn across the plot. The line is thin and dashed so it
+ * never reads as a bar, and the label sits at the top, out of the data's way.
+ */
+.chart .marker {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-left: 1px dashed var(--out);
+  opacity: 0.75;
+  pointer-events: none;
+}
+
+.chart .marker-label {
+  position: absolute;
+  top: 0;
+  left: 3px;
+  font-size: 10px;
+  line-height: 1.2;
+  white-space: nowrap;
+  color: var(--out);
+  background: var(--bg);
+  padding: 0 2px;
+  border-radius: 3px;
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Past the middle of the plot, the label is written to the left of its line instead. */
+.chart .marker.flipped .marker-label {
+  left: auto;
+  right: 3px;
+}
+
+/* Settings: the marker list, and the row that adds one. */
+.markers {
+  padding: 12px 16px;
+}
+
+.markers .hint {
+  margin: 0 0 12px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.marker-form {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.marker-form input {
+  font: inherit;
+  height: 30px;
+  padding: 0 10px;
+  color: var(--text);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.marker-form input[type='text'] {
+  flex: 1;
+  min-width: 140px;
+}
+
+.marker-form input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+button:disabled:hover {
+  border-color: var(--border);
+}
+
+.marker-list {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+}
+
+.marker-list li {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 7px 0;
+  border-top: 1px solid var(--border);
+  font-size: 13px;
+}
+
+.marker-list .marker-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.marker-list .muted {
+  font-variant-numeric: tabular-nums;
+  font-size: 12px;
+}
+
 dl.stats {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));

@@ -4,6 +4,7 @@ import AppFooter from './AppFooter.vue';
 import CardSparkline from './CardSparkline.vue';
 import MessageDrawer from './MessageDrawer.vue';
 import MessagesTable from './MessagesTable.vue';
+import SettingsDialog from './SettingsDialog.vue';
 import ToolbarSelect from './ToolbarSelect.vue';
 import TopList from './TopList.vue';
 import { fetchDashboard, resetStore } from './api';
@@ -23,6 +24,7 @@ const paused = ref(false);
 // `auto` lets the store pick: the finest period its history does not fill yet, so a
 // dashboard opened on a fresh process shows the last minute rather than a week of gaps.
 const window_ = ref('auto');
+const settingsOpen = ref(false);
 const theme = useTheme();
 
 // A half-filled disc is the usual "follow the system" mark, next to the sun and the moon.
@@ -76,6 +78,7 @@ async function reset(): Promise<void> {
   if (!globalThis.confirm('Drop every metric collected so far?')) return;
   try {
     await resetStore();
+    settingsOpen.value = false;
     await refresh();
   } catch (cause) {
     error.value = cause instanceof Error ? cause.message : String(cause);
@@ -137,7 +140,14 @@ const period = computed(() => {
       />
       <button class="ghost" @click="togglePause">{{ paused ? 'Resume' : 'Pause' }}</button>
       <button class="ghost" @click="refresh">Refresh</button>
-      <button class="ghost" @click="reset">Reset</button>
+      <button
+        class="icon-button"
+        title="Settings"
+        aria-label="Settings"
+        @click="settingsOpen = true"
+      >
+        ⚙️
+      </button>
       <button
         class="icon-button"
         :title="`Theme: ${themeLabel}. Click to switch.`"
@@ -204,6 +214,8 @@ const period = computed(() => {
         @select="selected = $event"
       />
     </div>
+
+    <SettingsDialog v-if="settingsOpen" @close="settingsOpen = false" @reset="reset" />
 
     <MessageDrawer
       :name="selected"

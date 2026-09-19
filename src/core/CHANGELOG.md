@@ -1,5 +1,11 @@
 # @sockeye-js/core
 
+## 0.3.0
+
+### Minor Changes
+
+- Settings menu. Allow to add time marks on graphs.
+
 ## 0.2.0
 
 ### Minor Changes

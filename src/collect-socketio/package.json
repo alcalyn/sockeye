@@ -1,6 +1,6 @@
 {
   "name": "@sockeye-js/collect-socketio",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "sockeye collector for socket.io: one middleware, and every event is measured.",
   "license": "AGPL-3.0-or-later",
   "author": "Julien Maulny (https://github.com/alcalyn)",

@@ -60,7 +60,9 @@ async function setup(
     const extra = connect(`http://localhost:${port}`, { transports: ['websocket'] });
     const extraServerSocket = await joined;
     await new Promise<void>((resolve) => extra.on('connect', () => resolve()));
-    running.push(async () => extra.disconnect());
+    running.push(async () => {
+      extra.disconnect();
+    });
     return extraServerSocket;
   };
 

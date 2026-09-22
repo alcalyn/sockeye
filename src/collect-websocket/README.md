@@ -45,12 +45,25 @@ time. `cancel()` drops the timer without recording a reply.
 | `monitor.start(name, payload?, options?)` | An incoming message + a timer for the reply |
 | `monitor.size(payload)` | Measures a payload without recording anything |
 
-`options` accepts `bytes` (when you already know the frame size), `namespace` and `latencyMs`.
+`options` accepts `bytes` (when you already know the frame size), `recipients`, `namespace`
+and `latencyMs`.
 
 ```ts
 // Skip the JSON measurement when the real frame size is at hand:
 monitor.received('sync', undefined, { bytes: frame.byteLength });
 ```
+
+## Counting a fan-out
+
+`recipients` says how many clients got the same frame, so the dashboard can show what a
+broadcast really costs. It defaults to `1`, and `0` means the message went to nobody.
+
+```ts
+for (const client of room) client.send(frame);
+monitor.sent('chat:message', message, { recipients: room.size });
+```
+
+Leave it alone if you already call `sent()` once per client: each call is one recipient.
 
 ## License
 

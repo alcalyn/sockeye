@@ -135,6 +135,22 @@ describe('attachWsMonitor (ws)', () => {
     });
   });
 
+  it('counts every outgoing frame as one recipient', async () => {
+    const { store, serverSocket } = await setup();
+    serverSocket.send(JSON.stringify({ type: 'chat:new', text: 'hello' }));
+
+    const stats = await until(async () => {
+      const [found] = await store.getMessageStats('chat:new', { direction: 'out' });
+      expect(found).toBeDefined();
+      return found;
+    });
+
+    // Fanning out is a loop of `send` in the app, so each recipient is already its own frame.
+    expect(stats.count).toBe(1);
+    expect(stats.sentCount).toBe(1);
+    expect(stats.sentBytes).toBe(stats.totalBytes);
+  });
+
   it('counts a message once when the monitor is attached twice', async () => {
     const { store, client } = await setup({}, 2);
     client.send(JSON.stringify({ type: 'chat:send', text: 'hello' }));

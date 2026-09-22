@@ -13,6 +13,13 @@ export interface RecordOptions {
   direction?: Direction;
   /** Override the measured payload size, when you already know the frame size. */
   bytes?: number;
+  /**
+   * How many clients this message was sent to. Defaults to `1`.
+   *
+   * Pass the size of the room when you send the same frame to several clients at once, so
+   * the dashboard can show the bandwidth it really costs; `0` says it went to nobody.
+   */
+  recipients?: number;
   /** Override the collector namespace for this message. */
   namespace?: string;
   /** Attach a response time you measured yourself. */
@@ -40,6 +47,9 @@ export interface PendingMessage {
  * const monitor = createMonitor(store);
  * monitor.received('chat:send', payload);
  *
+ * // The same frame pushed to a whole room, counted once per client:
+ * monitor.sent('chat:message', payload, { recipients: room.size });
+ *
  * const pending = monitor.start('chat:send', payload);
  * const answer = await handle(payload);
  * pending.end(answer); // records the response size and the response time
@@ -59,6 +69,7 @@ export class SocketMonitor {
       name,
       direction: options.direction ?? 'in',
       bytes: options.bytes ?? described.bytes,
+      ...(options.recipients !== undefined ? { recipients: options.recipients } : {}),
       ...(described.sample !== undefined ? { sample: described.sample } : {}),
       ...(options.namespace !== undefined ? { namespace: options.namespace } : {}),
       ...(options.latencyMs !== undefined ? { latencyMs: options.latencyMs } : {}),

@@ -18,6 +18,11 @@ attachWsMonitor(wss, store);
 Every frame received and every frame sent is recorded with its **exact wire size**, binary
 frames included.
 
+`ws` has no broadcast of its own, so fanning a message out to a room is a loop of `send` in
+your own code, and each recipient is already measured on its own. Every frame therefore
+counts as exactly one recipient, and the dashboard shows the same number whichever way it
+counts.
+
 ## Naming messages
 
 `ws` knows nothing about your protocol. By default, JSON frames are named after their

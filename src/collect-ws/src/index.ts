@@ -145,10 +145,13 @@ export function monitorWsSocket(
     const originalSend = socket.send.bind(socket);
     socket.send = function send(data: any, ...rest: any[]): void {
       const name = collector.guard(() => nameOfOutgoing(data)) ?? UNNAMED;
+      // `ws` has no broadcast of its own: fanning out to a room is a loop of `send` in
+      // your own code, so every recipient already gets its own measurement here.
       collector.record({
         name,
         direction: 'out',
         bytes: frameSize(data),
+        recipients: 1,
         sample: collector.sampleOf(collector.guard(() => frameText(data, false)), name),
         ...(namespace !== undefined ? { namespace } : {}),
       });

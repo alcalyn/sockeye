@@ -18,6 +18,27 @@ describe('SocketMonitor', () => {
     expect((await store.getMessageStats('chat:new', { direction: 'out' }))[0].count).toBe(1);
   });
 
+  it('counts one message per recipient when told how many there are', async () => {
+    const store = new MemoryStore();
+    const monitor = createMonitor(store);
+    const payload = { text: 'hello' };
+    const size = JSON.stringify(payload).length;
+
+    monitor.sent('chat:room', payload, { recipients: 12 });
+    monitor.sent('chat:whisper', payload);
+
+    const [room] = await store.getMessageStats('chat:room', { direction: 'out' });
+    expect(room.count).toBe(1);
+    expect(room.totalBytes).toBe(size);
+    expect(room.sentCount).toBe(12);
+    expect(room.sentBytes).toBe(size * 12);
+
+    // Saying nothing means one client, so the two ways of counting agree.
+    const [whisper] = await store.getMessageStats('chat:whisper', { direction: 'out' });
+    expect(whisper.sentCount).toBe(1);
+    expect(whisper.sentBytes).toBe(size);
+  });
+
   it('accepts an explicit frame size', async () => {
     const store = new MemoryStore();
     createMonitor(store).received('binary:blob', undefined, { bytes: 4096 });

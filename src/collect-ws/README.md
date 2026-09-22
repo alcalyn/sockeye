@@ -23,6 +23,9 @@ your own code, and each recipient is already measured on its own. Every frame th
 counts as exactly one recipient, and the dashboard shows the same number whichever way it
 counts.
 
+Sizes are the frames your app hands to `ws`, before `permessage-deflate` compresses them,
+so the real traffic on the wire is often smaller.
+
 ## Naming messages
 
 `ws` knows nothing about your protocol. By default, JSON frames are named after their

@@ -38,6 +38,9 @@ node, which is exactly the bandwidth this node pays for.
 A recipient count is not a delivery receipt: it is what was handed to the transport. Only
 an acknowledgement proves a client got the message, and that shows up as a latency.
 
+Sizes are the payloads your app emits, before the socket.io framing and
+`permessage-deflate` are applied, so the real traffic on the wire is often smaller.
+
 ## Namespaces
 
 `io.use()` covers the default namespace. To cover the others, including those created later:

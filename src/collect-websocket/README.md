@@ -21,6 +21,9 @@ ws.addEventListener('message', (event) => {
 });
 ```
 
+Sizes are the payloads you report, before any framing or compression, so the real traffic
+on the wire is often smaller.
+
 ## Measuring response times
 
 `start()` records the incoming message immediately and returns a handle; `end()` records the

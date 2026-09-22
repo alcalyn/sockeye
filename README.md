@@ -74,6 +74,34 @@ createMemoryStore({
 means finer buckets and more of them. The dashboard offers exactly this list, `ALL_TIME`
 included or not, so it only ever shows what the store can actually answer.
 
+### What a message costs
+
+Every message is counted twice, because both numbers are useful:
+
+- **per emit**: one call to `emit` is one message, whatever the number of recipients;
+- **per client reached**: a broadcast to a room of 500 is 500 messages and 500 payloads.
+
+Only the second says what the server actually pushed out, so it is what the dashboard shows
+by default; the switch in the messages table flips the whole page to the first. The gap
+between the two is the fan-out, and it cuts both ways: a broadcast to an empty room is one
+emit that costs no bandwidth at all, since socket.io writes to nobody.
+
+The socket.io collector counts the recipients the way socket.io picks them, so rooms,
+exclusions (`socket.broadcast`, `.except()`) and `io.emit` are all accounted for. With
+`ws`, fanning out is a loop of `send` in your own code, so each recipient is already its
+own message. With the free-form collector you say it yourself, through `recipients`.
+
+A recipient count is what was handed to the transport, not a delivery receipt. Only an
+acknowledgement proves a client received a message, and that is a response time.
+
+### Payload size is not bytes on the wire
+
+sockeye measures the **payload** your app sends, not the bytes the socket writes. A frame
+carries protocol overhead on top of it, and, more importantly, `permessage-deflate`
+compresses it: on JSON, the real traffic is often several times smaller than what the
+dashboard reports. Read the numbers as the relative weight of your message types, which is
+what they are good at, rather than as a bandwidth bill.
+
 ### Payload previews
 
 You can debug biggest payload of each type of message.
@@ -222,8 +250,9 @@ Every collector accepts the same options:
 | `onError` | `console.warn` | Called when the collector itself fails |
 
 `sockeye` adds `broadcasts` (default `true`), which also measures `io.emit`,
-`socket.broadcast.emit` and `socket.to(room).emit`. A broadcast counts as one message
-carrying its payload size, whatever the number of recipients.
+`socket.broadcast.emit` and `socket.to(room).emit`, and `countRecipients` (default `true`),
+which counts the clients each broadcast reaches — see [What a message
+costs](#what-a-message-costs).
 
 A collector never throws into your app: if the store is down or a payload cannot be measured,
 the error goes to `onError` and your messages keep flowing.

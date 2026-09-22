@@ -26,7 +26,17 @@ io.use(sockeye(store));
 The incoming message is recorded as soon as it arrives, so it is never lost when the reply
 never comes. Response times therefore live on the `out` side of a message.
 
-A broadcast counts as one message carrying its payload size, whatever the number of recipients.
+Every message also records **how many clients it was written to**, so one broadcast to a
+room of 500 is one emit and 500 sends. The recipients are counted the way socket.io picks
+them, which accounts for several rooms at once, for excluded sockets (`socket.broadcast`,
+`.except()`), and for a room nobody is in — a broadcast into the void is one emit that
+costs no bandwidth at all.
+
+With a clustered adapter (Redis & co), the count is the number of sockets held by *this*
+node, which is exactly the bandwidth this node pays for.
+
+A recipient count is not a delivery receipt: it is what was handed to the transport. Only
+an acknowledgement proves a client got the message, and that shows up as a latency.
 
 ## Namespaces
 
@@ -45,6 +55,7 @@ Each namespace is kept as a separate series in the store.
 | Option | Default | Effect |
 | --- | --- | --- |
 | `broadcasts` | `true` | Also measure broadcasts |
+| `countRecipients` | `true` | Count the clients each broadcast reaches. `false` counts one per emit, and skips the extra walk of the room |
 | `namespace` | socket's namespace | Override the grouping key |
 | `ignore` | none | Event names to skip, or a `(name, direction) => boolean` |
 | `sizeOf` | JSON size | Replace the payload measurement |

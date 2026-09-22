@@ -26,6 +26,8 @@ interface Harness {
   store: MemoryStore;
   client: ClientSocket;
   serverSocket: Socket;
+  /** So a test can bring more clients in, to broadcast to several of them. */
+  connect(): Promise<Socket>;
 }
 
 const running: Array<() => Promise<void>> = [];
@@ -53,7 +55,16 @@ async function setup(
     await new Promise<void>((resolve) => httpServer.close(() => resolve()));
   });
 
-  return { io, store, client, serverSocket };
+  const connectMore = async (): Promise<Socket> => {
+    const joined = new Promise<Socket>((resolve) => io.once('connection', resolve));
+    const extra = connect(`http://localhost:${port}`, { transports: ['websocket'] });
+    const extraServerSocket = await joined;
+    await new Promise<void>((resolve) => extra.on('connect', () => resolve()));
+    running.push(async () => extra.disconnect());
+    return extraServerSocket;
+  };
+
+  return { io, store, client, serverSocket, connect: connectMore };
 }
 
 const withOptions = (options: SocketIoMonitorOptions) => (io: Server, store: MemoryStore) =>
@@ -182,6 +193,66 @@ describe('sockeye (socket.io)', () => {
     await until(async () => {
       const [found] = await store.getMessageStats('announce', { direction: 'out' });
       expect(found?.count).toBe(3);
+    });
+  });
+
+  it('counts how many clients a broadcast reaches', async () => {
+    const { io, serverSocket, store, connect: connectMore } = await setup();
+    const second = await connectMore();
+    await connectMore();
+
+    // Two of the three clients are in the room.
+    serverSocket.join('room');
+    second.join('room');
+
+    io.to('room').emit('toRoom', { msg: 'hi' });
+    io.emit('toEveryone', { msg: 'hi' });
+    serverSocket.broadcast.emit('toOthers', { msg: 'hi' });
+    io.to('nobody').emit('toNobody', { msg: 'hi' });
+
+    const sent = async (name: string) => {
+      const [found] = await store.getMessageStats(name, { direction: 'out' });
+      expect(found).toBeDefined();
+      return found;
+    };
+
+    await until(async () => {
+      expect((await sent('toRoom')).sentCount).toBe(2);
+      expect((await sent('toEveryone')).sentCount).toBe(3);
+      // The emitter is excluded from its own broadcast.
+      expect((await sent('toOthers')).sentCount).toBe(2);
+      // Emitted into the void: one call, and not a single byte on the wire.
+      const nobody = await sent('toNobody');
+      expect(nobody.count).toBe(1);
+      expect(nobody.sentCount).toBe(0);
+      expect(nobody.sentBytes).toBe(0);
+    });
+
+    // Each broadcast is still a single emit, whoever received it.
+    expect((await sent('toRoom')).count).toBe(1);
+    expect((await sent('toRoom')).sentBytes).toBe((await sent('toRoom')).totalBytes * 2);
+  });
+
+  it('counts one recipient per broadcast when asked not to count them', async () => {
+    const { io, store, connect: connectMore } = await setup(withOptions({ countRecipients: false }));
+    await connectMore();
+
+    io.emit('announce', { msg: 'to two clients' });
+
+    await until(async () => {
+      const [found] = await store.getMessageStats('announce', { direction: 'out' });
+      expect(found?.count).toBe(1);
+      expect(found?.sentCount).toBe(1);
+    });
+  });
+
+  it('counts a direct emit as a single recipient', async () => {
+    const { serverSocket, store } = await setup();
+    serverSocket.emit('welcome', { msg: 'hi' });
+
+    await until(async () => {
+      const [found] = await store.getMessageStats('welcome', { direction: 'out' });
+      expect(found?.sentCount).toBe(1);
     });
   });
 

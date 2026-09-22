@@ -2,10 +2,30 @@
 import { computed, ref } from 'vue';
 import ToolbarSelect from './ToolbarSelect.vue';
 import * as fmt from './format';
-import type { MessageStats, SortKey } from './types';
+import { setCounting, useCounting } from './counting';
+import type { CountingMode, MessageStats, SortKey } from './types';
 
 const props = defineProps<{ messages: MessageStats[] }>();
 const emit = defineEmits<{ select: [name: string] }>();
+
+const counting = useCounting();
+
+/**
+ * The two ways of counting a message. `per client` is the default: one broadcast to a room
+ * of ten is ten messages and ten payloads, which is what the server actually pushed out.
+ */
+const COUNTING: Array<{ value: CountingMode; label: string; hint: string }> = [
+  {
+    value: 'sent',
+    label: 'Per client',
+    hint: 'Count every copy sent: a broadcast to ten clients counts ten times',
+  },
+  {
+    value: 'emit',
+    label: 'Per emit',
+    hint: 'Count every call once, whatever the number of recipients',
+  },
+];
 
 const sort = ref<SortKey>('count');
 const direction = ref<'all' | 'in' | 'out'>('all');
@@ -22,25 +42,36 @@ const LIMITS = [
 ];
 const limit = ref(15);
 
-const columns: Array<{ key: SortKey; label: string; hint?: string }> = [
-  { key: 'name', label: 'Message' },
-  { key: 'count', label: 'Count' },
-  {
-    key: 'bandwidth',
-    label: 'Total data',
-    hint: 'Sum of every payload over the selected period: a total, not a rate',
-  },
-  { key: 'bytes', label: 'Payload', hint: 'Median / average size of one message' },
-  { key: 'latency', label: 'Response time', hint: 'Median / p95' },
-];
+const columns = computed<Array<{ key: SortKey; label: string; hint?: string }>>(() => {
+  const perClient = counting.value === 'sent';
+  return [
+    { key: 'name', label: 'Message' },
+    {
+      key: 'count',
+      label: 'Count',
+      hint: perClient
+        ? 'Messages pushed to a client, so a broadcast counts once per recipient'
+        : 'Calls to emit, whatever the number of recipients',
+    },
+    {
+      key: 'bandwidth',
+      label: 'Total data',
+      hint: perClient
+        ? 'Every payload multiplied by the clients it reached: a total, not a rate'
+        : 'Sum of every payload, counted once per emit: a total, not a rate',
+    },
+    { key: 'bytes', label: 'Payload', hint: 'Median / average size of one message' },
+    { key: 'latency', label: 'Response time', hint: 'Median / p95' },
+  ];
+});
 
 /** The number a row is ranked and drawn by, for a given column. */
 function value(message: MessageStats, key: SortKey): number {
   switch (key) {
     case 'count':
-      return message.count;
+      return counting.value === 'emit' ? message.count : message.sentCount;
     case 'bandwidth':
-      return message.totalBytes;
+      return counting.value === 'emit' ? message.totalBytes : message.sentBytes;
     case 'bytes':
       return message.bytes.p50;
     case 'latency':
@@ -101,6 +132,16 @@ const hasNamespaces = computed(() => new Set(props.messages.map((m) => m.namespa
         {{ option === 'all' ? 'All' : option === 'in' ? 'Received' : 'Sent' }}
       </button>
       <div class="spacer" style="flex: 1" />
+      <button
+        v-for="option in COUNTING"
+        :key="option.value"
+        class="ghost"
+        :style="option.value === counting ? 'border-color: var(--accent); color: var(--accent)' : ''"
+        :title="option.hint"
+        @click="setCounting(option.value)"
+      >
+        {{ option.label }}
+      </button>
       <ToolbarSelect v-model="limit" :options="LIMITS" title="Rows shown" />
     </div>
 
@@ -132,12 +173,12 @@ const hasNamespaces = computed(() => new Set(props.messages.map((m) => m.namespa
           </td>
 
           <td class="num">
-            {{ fmt.count(message.count) }}
+            {{ fmt.count(value(message, 'count')) }}
             <div class="cell-bar" :style="{ width: width(message, 'count') }" />
           </td>
 
           <td class="num">
-            {{ fmt.bytes(message.totalBytes) }}
+            {{ fmt.bytes(value(message, 'bandwidth')) }}
             <div class="cell-bar" :style="{ width: width(message, 'bandwidth') }" />
           </td>
 

@@ -4,7 +4,31 @@ import HistogramChart from './HistogramChart.vue';
 import PayloadSamples from './PayloadSamples.vue';
 import { fetchMessage } from './api';
 import * as fmt from './format';
-import type { MessageDetail } from './types';
+import { useCounting } from './counting';
+import type { MessageDetail, TimelineBucket } from './types';
+
+const counting = useCounting();
+const perEmit = computed(() => counting.value === 'emit');
+
+/**
+ * The history, counted the way the dashboard is set to count.
+ *
+ * The chart always reads `count` and `bytes`, so the two recipient-aware numbers are moved
+ * into them rather than teaching every chart about both.
+ */
+function history(detail: MessageDetail): TimelineBucket[] {
+  if (perEmit.value) return detail.timeline;
+  return detail.timeline.map((bucket) => ({
+    ...bucket,
+    count: bucket.sentCount,
+    bytes: bucket.sentBytes,
+  }));
+}
+
+/** How many clients one message of this type reaches on average. */
+function fanout(detail: MessageDetail): number {
+  return detail.count === 0 ? 0 : detail.sentCount / detail.count;
+}
 
 /** Length of one history bucket, which drives how its axis is labelled. */
 function bucketSize(detail: MessageDetail): number {
@@ -111,13 +135,22 @@ onBeforeUnmount(() => {
       <section v-for="detail in details" :key="`${detail.namespace}/${detail.direction}`" class="panel">
         <h2>
           <span class="tag" :class="detail.direction">{{ detail.direction }}</span>
-          {{ detail.namespace }} · {{ fmt.count(detail.count) }} messages
+          {{ detail.namespace }} ·
+          {{ fmt.count(perEmit ? detail.count : detail.sentCount) }}
+          {{ perEmit ? 'emits' : 'messages sent' }}
         </h2>
 
         <dl class="stats">
           <div>
             <dt>Bandwidth</dt>
-            <dd>{{ fmt.bytes(detail.totalBytes) }}</dd>
+            <dd>{{ fmt.bytes(perEmit ? detail.totalBytes : detail.sentBytes) }}</dd>
+          </div>
+          <div v-if="detail.sentCount !== detail.count">
+            <dt>Recipients</dt>
+            <dd>
+              {{ fmt.count(Math.round(fanout(detail) * 10) / 10) }} per emit
+              <span class="muted">({{ fmt.count(detail.count) }} emits)</span>
+            </dd>
           </div>
           <div>
             <dt>Payload median</dt>
@@ -139,7 +172,7 @@ onBeforeUnmount(() => {
 
         <h2>Over time: how many messages per {{ bucketUnit(detail) }}</h2>
         <HistogramChart
-          :buckets="detail.timeline"
+          :buckets="history(detail)"
           :format="fmt.clockFor(bucketSize(detail))"
           unit="messages"
           time-axis
@@ -147,7 +180,7 @@ onBeforeUnmount(() => {
 
         <h2>Over time: bandwidth per {{ bucketUnit(detail) }}</h2>
         <HistogramChart
-          :buckets="detail.timeline"
+          :buckets="history(detail)"
           :format="fmt.clockFor(bucketSize(detail))"
           metric="bytes"
           unit="bandwidth"

@@ -16,6 +16,9 @@ export interface MessageStats {
   namespace: string;
   count: number;
   totalBytes: number;
+  /** The same two numbers counted once per recipient rather than once per emit. */
+  sentCount: number;
+  sentBytes: number;
   firstSeen: number;
   lastSeen: number;
   bytes: Distribution;
@@ -34,6 +37,8 @@ export interface TimelineBucket {
   to: number;
   count: number;
   bytes: number;
+  sentCount: number;
+  sentBytes: number;
 }
 
 export interface MessageDetail extends MessageStats {
@@ -51,6 +56,8 @@ export interface TopEntry {
   bytes: number;
   latencyMs?: number;
   timestamp: number;
+  /** How many clients this one was sent to. Absent means one. */
+  recipients?: number;
   /** Truncated payload, when the collector captured one. */
   sample?: string;
 }
@@ -64,12 +71,22 @@ export interface WindowRange {
   resolutionMs: number;
 }
 
+/** Totals for one direction, counted both per emit and per recipient. */
+export interface DirectionTotals {
+  count: number;
+  bytes: number;
+  sentCount: number;
+  sentBytes: number;
+}
+
 export interface Overview {
   totalMessages: number;
   totalBytes: number;
+  totalSent: number;
+  totalSentBytes: number;
   messageTypes: number;
-  in: { count: number; bytes: number };
-  out: { count: number; bytes: number };
+  in: DirectionTotals;
+  out: DirectionTotals;
   firstSeen: number | null;
   lastSeen: number | null;
   /** The period these numbers cover. `null` means the whole history. */
@@ -87,3 +104,11 @@ export interface Dashboard {
 }
 
 export type SortKey = 'count' | 'bandwidth' | 'bytes' | 'latency' | 'name';
+
+/**
+ * Which of the two ways of counting a message the dashboard shows.
+ *
+ * - `sent` : one message per recipient, what the server really pushed out
+ * - `emit` : one message per call, whatever the number of recipients
+ */
+export type CountingMode = 'sent' | 'emit';

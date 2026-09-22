@@ -30,6 +30,11 @@ Open <http://localhost:3000/sockeye/>.
 - a detail panel per message: how many of it over time, the payload size and response time
   histograms, and a few real payloads to unfold.
 
+Counts and totals are per **client reached**, so one broadcast to a room of ten counts as
+ten messages and ten payloads: what the server really pushed out. The switch in the table's
+toolbar flips the whole page back to counting **per emit**, one per call whatever the number
+of recipients, and the choice is remembered in the browser.
+
 It polls the API, so the numbers keep moving while you watch. Dark and light themes are
 both there: it follows the system preference, and the picker in the toolbar overrides it
 (remembered in the browser).
@@ -40,12 +45,16 @@ both there: it follows the system preference, and the picker in the toolbar over
 | --- | --- |
 | `GET /api/dashboard` | Everything below, in one payload |
 | `GET /api/overview` | Totals |
-| `GET /api/messages?sort=count\|bandwidth\|bytes\|latency&direction=in\|out&namespace=&limit=` | Stats per message type |
+| `GET /api/messages?sort=count\|bandwidth\|bytes\|latency&counting=sent\|emit&direction=in\|out&namespace=&limit=` | Stats per message type |
 | `GET /api/messages/:name?direction=` | Detail for one message, with histograms |
 | `GET /api/top/slowest\|heaviest?limit=` | Top lists |
 | `GET /api/windows` | Periods the store can answer for |
 | `POST /api/reset` | Drops every metric (when the store supports it) |
 | `GET /api/health` | `{ ok: true }` |
+
+`counting` picks which of the two numbers the list is sorted and trimmed on: `sent`
+(the default, one per recipient) or `emit`. Both are always in the response, as
+`count`/`totalBytes` and `sentCount`/`sentBytes`.
 
 Every read endpoint takes `?window=` (`1m`, `5m`, `1h`, `24h`, `7d`, `all`…). Which periods
 exist depends on the store's `windows`; `GET /api/windows` is the source of truth, and the

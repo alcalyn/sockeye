@@ -1,4 +1,4 @@
-import type { Dashboard, MessageDetail } from './types';
+import type { CountingMode, Dashboard, MessageDetail } from './types';
 
 /**
  * The API lives next to the page, whatever path the dashboard was mounted on
@@ -18,8 +18,11 @@ async function get<T>(path: string): Promise<T> {
   return (await response.json()) as T;
 }
 
-export function fetchDashboard(window: string): Promise<Dashboard> {
-  return get<Dashboard>(`/dashboard?window=${encodeURIComponent(window)}`);
+export function fetchDashboard(window: string, counting: CountingMode): Promise<Dashboard> {
+  // The server sorts and trims the list, so it has to count the same way the page does.
+  return get<Dashboard>(
+    `/dashboard?window=${encodeURIComponent(window)}&counting=${encodeURIComponent(counting)}`,
+  );
 }
 
 export function fetchMessage(name: string, window: string): Promise<MessageDetail[]> {

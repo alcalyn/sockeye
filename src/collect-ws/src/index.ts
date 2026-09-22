@@ -38,6 +38,27 @@ export interface WsMonitorOptions extends CollectorOptions {
 /** Name used for frames that are not JSON objects. */
 export const BINARY = '<binary>';
 
+/**
+ * Sockets already instrumented, per store.
+ *
+ * Attaching the monitor twice (on the server and on a sub-protocol handler, say) is a
+ * realistic mistake, and without this guard every message would silently be counted twice.
+ * Keying on the store is what still lets a second, separate monitor take its own
+ * measurements of the same socket.
+ */
+const instrumented = new WeakMap<StoreWriterInterface, WeakSet<object>>();
+
+function alreadyInstrumented(store: StoreWriterInterface, socket: object): boolean {
+  let sockets = instrumented.get(store);
+  if (!sockets) {
+    sockets = new WeakSet<object>();
+    instrumented.set(store, sockets);
+  }
+  if (sockets.has(socket)) return true;
+  sockets.add(socket);
+  return false;
+}
+
 /** Exact size of a frame as received by `ws`, without re-serializing anything. */
 function frameSize(data: unknown): number {
   if (Array.isArray(data)) return data.reduce<number>((total, part) => total + frameSize(part), 0);
@@ -102,6 +123,8 @@ export function monitorWsSocket(
   store: StoreWriterInterface,
   options: WsMonitorOptions = {},
 ): WebSocketLike {
+  if (alreadyInstrumented(store, socket)) return socket;
+
   const collector = new Collector(store, options);
   const nameOf = options.nameOf ?? defaultNameOf;
   const nameOfOutgoing = options.nameOfOutgoing ?? ((data: unknown) => nameOf(data, false));

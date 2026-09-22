@@ -20,10 +20,10 @@ async function until<T>(check: () => T | Promise<T>, timeout = 3000): Promise<T>
 
 const running: Array<() => Promise<void>> = [];
 
-async function setup(options: WsMonitorOptions = {}) {
+async function setup(options: WsMonitorOptions = {}, monitors = 1) {
   const store = new MemoryStore();
   const wss = new WebSocketServer({ port: 0 });
-  attachWsMonitor(wss, store, options);
+  for (let i = 0; i < monitors; i++) attachWsMonitor(wss, store, options);
 
   await new Promise<void>((resolve) => wss.on('listening', resolve));
   const { port } = wss.address() as AddressInfo;
@@ -133,5 +133,18 @@ describe('attachWsMonitor (ws)', () => {
     await until(async () => {
       expect(await store.listMessages()).toHaveLength(1);
     });
+  });
+
+  it('counts a message once when the monitor is attached twice', async () => {
+    const { store, client } = await setup({}, 2);
+    client.send(JSON.stringify({ type: 'chat:send', text: 'hello' }));
+
+    const stats = await until(async () => {
+      const [found] = await store.getMessageStats('chat:send', { direction: 'in' });
+      expect(found).toBeDefined();
+      return found;
+    });
+
+    expect(stats.count).toBe(1);
   });
 });

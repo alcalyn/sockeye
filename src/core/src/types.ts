@@ -12,6 +12,14 @@ export interface MessageEvent {
   direction: Direction;
   /** Size of the serialized payload, in bytes. */
   bytes: number;
+  /**
+   * How many client sockets this message was written to. Defaults to `1`, and `0` means it
+   * was emitted into the void: a broadcast to a room nobody is in costs no bandwidth at all.
+   *
+   * This is what was handed to the transport, not a proof of reception: only an
+   * acknowledgement proves that, and it shows up as a `latencyMs` of its own.
+   */
+  recipients?: number;
   /** Round-trip time in milliseconds. Only set when it could be measured (socket.io ack, manual timer). */
   latencyMs?: number;
   /** Unix epoch in milliseconds. */
@@ -49,10 +57,14 @@ export interface MessageStats {
   name: string;
   direction: Direction;
   namespace: string;
-  /** Number of messages seen. */
+  /** Number of messages seen. One broadcast counts once, whoever received it. */
   count: number;
-  /** Total bytes transferred by this message type: its share of the bandwidth. */
+  /** Total bytes of the payloads, counted once per message. */
   totalBytes: number;
+  /** Number of copies sent: every message summed over its recipients. */
+  sentCount: number;
+  /** Bytes actually pushed to clients: every payload multiplied by its recipients. */
+  sentBytes: number;
   firstSeen: number;
   lastSeen: number;
   bytes: Distribution;
@@ -76,6 +88,9 @@ export interface TimelineBucket {
   to: number;
   count: number;
   bytes: number;
+  /** Same two numbers, counted per recipient rather than per message. */
+  sentCount: number;
+  sentBytes: number;
 }
 
 /** `MessageStats` plus the raw distributions and the history, for the detail view. */
@@ -100,6 +115,8 @@ export interface TopEntry {
   bytes: number;
   latencyMs?: number;
   timestamp: number;
+  /** How many clients this one was sent to. Absent when it is not known, meaning one. */
+  recipients?: number;
   /** Truncated payload, when the collector was allowed to capture one. */
   sample?: string;
 }
@@ -107,6 +124,14 @@ export interface TopEntry {
 export type TopKind = 'slowest' | 'heaviest';
 
 export type SortKey = 'count' | 'bandwidth' | 'bytes' | 'latency' | 'name';
+
+/**
+ * Which of the two ways of counting a message the numbers refer to.
+ *
+ * - `sent` : one message per recipient, which is what the server actually pushed out
+ * - `emit` : one message per call, whatever the number of recipients
+ */
+export type CountingMode = 'sent' | 'emit';
 
 /** Restricts a query to a period, by window key (`5m`, `1h`, `24h`, `all`…). */
 export interface WindowOptions {
@@ -122,6 +147,11 @@ export interface ListMessagesOptions extends WindowOptions {
    * - `latency`   : biggest median latency first
    */
   sort?: SortKey;
+  /**
+   * Which numbers `count` and `bandwidth` sort on. Defaults to `sent`, so the heaviest
+   * message types are the ones that really cost the most bandwidth.
+   */
+  counting?: CountingMode;
   direction?: Direction;
   namespace?: string;
   limit?: number;
@@ -146,13 +176,24 @@ export interface WindowRange {
   resolutionMs: number;
 }
 
+/** Totals for one direction, counted both per message and per recipient. */
+export interface DirectionTotals {
+  count: number;
+  bytes: number;
+  sentCount: number;
+  sentBytes: number;
+}
+
 export interface Overview {
   totalMessages: number;
   totalBytes: number;
+  /** The same two totals counted per recipient: what was really pushed to the clients. */
+  totalSent: number;
+  totalSentBytes: number;
   /** Number of distinct (namespace, direction, name) series being tracked. */
   messageTypes: number;
-  in: { count: number; bytes: number };
-  out: { count: number; bytes: number };
+  in: DirectionTotals;
+  out: DirectionTotals;
   /** Timestamp of the first and last message in the window, or `null` when empty. */
   firstSeen: number | null;
   lastSeen: number | null;

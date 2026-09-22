@@ -20,6 +20,16 @@ export function parseSeriesKey(key: string): { namespace: string; direction: Dir
   return { namespace, direction: direction as Direction, name: rest.join(SEP) };
 }
 
+/**
+ * How many clients a message went to. Unknown means one, which is what every collector
+ * that cannot tell (and every incoming message) reports.
+ */
+export function recipientsOf(event: Pick<MessageEvent, 'recipients'>): number {
+  const { recipients } = event;
+  if (recipients === undefined || !Number.isFinite(recipients) || recipients < 0) return 1;
+  return Math.round(recipients);
+}
+
 export function emptyDistribution(): Distribution {
   return { count: 0, total: 0, avg: 0, p50: 0, p95: 0, p99: 0, max: 0 };
 }
@@ -53,6 +63,9 @@ export class StatsAggregator {
   count = 0;
   bytesTotal = 0;
   bytesMax = 0;
+  /** Messages and bytes counted once per recipient rather than once per call. */
+  sentCount = 0;
+  sentBytes = 0;
   latencyCount = 0;
   latencyTotal = 0;
   latencyMax = 0;
@@ -72,7 +85,14 @@ export class StatsAggregator {
     this.count++;
     this.bytesTotal += event.bytes;
     if (event.bytes > this.bytesMax) this.bytesMax = event.bytes;
+    // The histogram, the average and the maximum describe the size of one payload, so a
+    // broadcast contributes a single value whatever the number of recipients. Only the
+    // totals are multiplied.
     hist.record(this.bytesHistogram, event.bytes);
+
+    const recipients = recipientsOf(event);
+    this.sentCount += recipients;
+    this.sentBytes += event.bytes * recipients;
 
     if (event.latencyMs !== undefined && Number.isFinite(event.latencyMs)) {
       this.latencyCount++;
@@ -92,6 +112,8 @@ export class StatsAggregator {
       namespace: this.namespace,
       count: this.count,
       totalBytes: this.bytesTotal,
+      sentCount: this.sentCount,
+      sentBytes: this.sentBytes,
       firstSeen: this.firstSeen,
       lastSeen: this.lastSeen,
       bytes: distributionOf(this.count, this.bytesTotal, this.bytesMax, this.bytesHistogram),
@@ -120,6 +142,8 @@ export class StatsAggregator {
 
     this.count += other.count;
     this.bytesTotal += other.bytesTotal;
+    this.sentCount += other.sentCount;
+    this.sentBytes += other.sentBytes;
     if (other.bytesMax > this.bytesMax) this.bytesMax = other.bytesMax;
     hist.merge(this.bytesHistogram, other.bytesHistogram);
 
@@ -142,6 +166,8 @@ export class StatsAggregator {
     this.count = 0;
     this.bytesTotal = 0;
     this.bytesMax = 0;
+    this.sentCount = 0;
+    this.sentBytes = 0;
     this.latencyCount = 0;
     this.latencyTotal = 0;
     this.latencyMax = 0;

@@ -108,18 +108,28 @@ describe('StatsAggregator', () => {
 });
 
 describe('applyListOptions', () => {
-  const stats = (over: Partial<MessageStats>): MessageStats => ({
-    name: 'a',
-    direction: 'in',
-    namespace: '/',
-    count: 1,
-    totalBytes: 1,
-    firstSeen: 0,
-    lastSeen: 0,
-    bytes: { count: 1, total: 1, avg: 1, p50: 1, p95: 1, p99: 1, max: 1 },
-    latency: null,
-    ...over,
-  });
+  const stats = (over: Partial<MessageStats>): MessageStats => {
+    const base: MessageStats = {
+      name: 'a',
+      direction: 'in',
+      namespace: '/',
+      count: 1,
+      totalBytes: 1,
+      sentCount: 1,
+      sentBytes: 1,
+      firstSeen: 0,
+      lastSeen: 0,
+      bytes: { count: 1, total: 1, avg: 1, p50: 1, p95: 1, p99: 1, max: 1 },
+      latency: null,
+      ...over,
+    };
+    // Unless a test says otherwise, a message went to exactly one client.
+    return {
+      ...base,
+      sentCount: over.sentCount ?? base.count,
+      sentBytes: over.sentBytes ?? base.totalBytes,
+    };
+  };
 
   const list = [
     stats({ name: 'small', count: 100, totalBytes: 1000 }),
@@ -132,6 +142,19 @@ describe('applyListOptions', () => {
     expect(applyListOptions(list, { sort: 'count' })[0].name).toBe('small');
     expect(applyListOptions(list, { sort: 'bandwidth' })[0].name).toBe('big');
     expect(applyListOptions(list, { sort: 'latency' })[0].name).toBe('slow');
+  });
+
+  it('sorts on the recipients by default, and on the emits when asked', () => {
+    // One broadcast to 500 clients against a unicast message sent 100 times.
+    const fanout = [
+      stats({ name: 'unicast', count: 100, totalBytes: 1000 }),
+      stats({ name: 'broadcast', count: 2, totalBytes: 200, sentCount: 1000, sentBytes: 100_000 }),
+    ];
+
+    expect(applyListOptions(fanout, { sort: 'count' })[0].name).toBe('broadcast');
+    expect(applyListOptions(fanout, { sort: 'bandwidth' })[0].name).toBe('broadcast');
+    expect(applyListOptions(fanout, { sort: 'count', counting: 'emit' })[0].name).toBe('unicast');
+    expect(applyListOptions(fanout, { sort: 'bandwidth', counting: 'emit' })[0].name).toBe('unicast');
   });
 
   it('filters by direction and limits', () => {

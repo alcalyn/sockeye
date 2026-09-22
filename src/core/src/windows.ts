@@ -202,6 +202,8 @@ export function mergeTimelines(timelines: readonly TimelineBucket[][]): Timeline
       if (total) {
         total.count += bucket.count;
         total.bytes += bucket.bytes;
+        total.sentCount += bucket.sentCount;
+        total.sentBytes += bucket.sentBytes;
       } else {
         merged.set(bucket.from, { ...bucket });
       }
@@ -277,6 +279,8 @@ export class WindowedSeries {
         to: (index + 1) * ms,
         count: slice?.count ?? 0,
         bytes: slice?.bytesTotal ?? 0,
+        sentCount: slice?.sentCount ?? 0,
+        sentBytes: slice?.sentBytes ?? 0,
       });
     }
     return buckets;

@@ -148,6 +148,7 @@ export class Collector {
         timestamp: input.timestamp ?? this.now(),
         namespace: input.namespace ?? this.namespace,
       };
+      if (input.recipients !== undefined) event.recipients = input.recipients;
       if (input.latencyMs !== undefined) event.latencyMs = input.latencyMs;
       if (input.sample !== undefined) event.sample = input.sample;
 

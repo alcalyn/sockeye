@@ -96,6 +96,22 @@ if (!redis) {
       expect(stats.latency?.max).toBe(250);
     });
 
+    it('writes only known fields into a time slice', async () => {
+      await store.reset();
+      store.record(event({ name: 'sliced', bytes: 128, latencyMs: 20, recipients: 3 }));
+      await store.flush();
+
+      const [sliceKey] = await redis!.keys(`${prefix}:w:*:*sliced`);
+      expect(sliceKey).toBeDefined();
+
+      // The slice script takes its histogram buckets from a variable-length tail, so a new
+      // fixed argument that forgets to move the tail shows up as a junk field right here.
+      const fields = Object.keys(await redis!.hgetall(sliceKey)).sort();
+      const known = /^(count|bytes|scount|sbytes|bmax|lcount|lsumUs|lmax|first|last|b\d+|l\d+)$/;
+      expect(fields.filter((field) => !known.test(field))).toEqual([]);
+      expect(fields).toContain('scount');
+    });
+
     it('keeps fractional latencies accurate through Redis integer counters', async () => {
       await store.reset();
 

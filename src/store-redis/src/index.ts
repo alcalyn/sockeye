@@ -161,6 +161,8 @@ local function bound(field, raw, keepHighest)
 end
 redis.call('HINCRBY', key, 'count', ARGV[2])
 redis.call('HINCRBY', key, 'bytes', ARGV[3])
+redis.call('HINCRBY', key, 'scount', ARGV[11])
+redis.call('HINCRBY', key, 'sbytes', ARGV[12])
 bound('bmax', ARGV[4], true)
 if ARGV[5] ~= '0' then
   redis.call('HINCRBY', key, 'lcount', ARGV[5])
@@ -169,7 +171,8 @@ if ARGV[5] ~= '0' then
 end
 bound('first', ARGV[8], false)
 bound('last', ARGV[9], true)
-for i = 11, #ARGV, 2 do
+-- Histogram buckets start right after the fixed arguments above.
+for i = 13, #ARGV, 2 do
   redis.call('HINCRBY', key, ARGV[i], ARGV[i + 1])
 end
 redis.call('EXPIRE', key, ttl)
@@ -342,6 +345,8 @@ export class RedisStore implements StoreInterface {
       pipeline.sadd(this.seriesSetKey(), key);
       pipeline.hincrby(hash, 'count', aggregator.count);
       pipeline.hincrby(hash, 'bytes', aggregator.bytesTotal);
+      pipeline.hincrby(hash, 'scount', aggregator.sentCount);
+      pipeline.hincrby(hash, 'sbytes', aggregator.sentBytes);
       incrementBuckets(pipeline, hash, 'b', aggregator.bytesHistogram);
 
       if (aggregator.latencyCount > 0) {
@@ -392,6 +397,8 @@ export class RedisStore implements StoreInterface {
           String(aggregator.firstSeen),
           String(aggregator.lastSeen),
           key,
+          String(aggregator.sentCount),
+          String(aggregator.sentBytes),
           ...bucketArgs,
         );
       }
@@ -600,9 +607,11 @@ export class RedisStore implements StoreInterface {
     const overview: Overview = {
       totalMessages: 0,
       totalBytes: 0,
+      totalSent: 0,
+      totalSentBytes: 0,
       messageTypes: entries.length,
-      in: { count: 0, bytes: 0 },
-      out: { count: 0, bytes: 0 },
+      in: { count: 0, bytes: 0, sentCount: 0, sentBytes: 0 },
+      out: { count: 0, bytes: 0, sentCount: 0, sentBytes: 0 },
       firstSeen: null,
       lastSeen: null,
       window: range,
@@ -612,9 +621,13 @@ export class RedisStore implements StoreInterface {
     for (const [, aggregate] of entries) {
       overview.totalMessages += aggregate.count;
       overview.totalBytes += aggregate.bytesTotal;
+      overview.totalSent += aggregate.sentCount;
+      overview.totalSentBytes += aggregate.sentBytes;
       const side = overview[aggregate.direction] ?? overview.in;
       side.count += aggregate.count;
       side.bytes += aggregate.bytesTotal;
+      side.sentCount += aggregate.sentCount;
+      side.sentBytes += aggregate.sentBytes;
 
       if (aggregate.firstSeen > 0 && (overview.firstSeen === null || aggregate.firstSeen < overview.firstSeen)) {
         overview.firstSeen = aggregate.firstSeen;
@@ -689,6 +702,8 @@ export class RedisStore implements StoreInterface {
         to: (slot + 1) * ms,
         count: Number(hash?.count ?? 0),
         bytes: Number(hash?.bytes ?? 0),
+        sentCount: Number(hash?.scount ?? hash?.count ?? 0),
+        sentBytes: Number(hash?.sbytes ?? hash?.bytes ?? 0),
       };
     });
   }
@@ -713,6 +728,8 @@ export class RedisStore implements StoreInterface {
       to: (slot + 1) * ms,
       count: 0,
       bytes: 0,
+      sentCount: 0,
+      sentBytes: 0,
     }));
 
     // Which bucket each hash belongs to, so the flat pipeline result can be added back.
@@ -735,6 +752,8 @@ export class RedisStore implements StoreInterface {
       const { bucket } = wanted[index];
       bucket.count += Number(hash.count ?? 0);
       bucket.bytes += Number(hash.bytes ?? 0);
+      bucket.sentCount += Number(hash.scount ?? hash.count ?? 0);
+      bucket.sentBytes += Number(hash.sbytes ?? hash.bytes ?? 0);
     });
 
     return buckets;
@@ -852,6 +871,9 @@ function aggregateFromHash(key: string, hash: Record<string, string>): StatsAggr
 
   aggregate.count = Number(hash.count ?? 0);
   aggregate.bytesTotal = Number(hash.bytes ?? 0);
+  // Slices written before recipients were tracked only know the per-message numbers.
+  aggregate.sentCount = Number(hash.scount ?? hash.count ?? 0);
+  aggregate.sentBytes = Number(hash.sbytes ?? hash.bytes ?? 0);
   aggregate.bytesMax = Number(hash.bmax ?? 0);
   aggregate.latencyCount = Number(hash.lcount ?? 0);
   aggregate.latencyTotal = Number(hash.lsumUs ?? 0) / 1000;

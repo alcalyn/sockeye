@@ -81,10 +81,50 @@ export function describeStoreContract(label: string, context: ContractContext): 
       expect(overview.totalMessages).toBe(2);
       expect(overview.totalBytes).toBe(100);
       expect(overview.messageTypes).toBe(2);
-      expect(overview.in).toEqual({ count: 1, bytes: 10 });
-      expect(overview.out).toEqual({ count: 1, bytes: 90 });
+      expect(overview.in).toEqual({ count: 1, bytes: 10, sentCount: 1, sentBytes: 10 });
+      expect(overview.out).toEqual({ count: 1, bytes: 90, sentCount: 1, sentBytes: 90 });
       expect(overview.firstSeen).toBe(1_700_000_000_000);
       expect(overview.lastSeen).toBe(1_700_000_005_000);
+    });
+
+    it('counts a message once per emit and once per recipient', async () => {
+      await write(
+        event({ name: 'announce', direction: 'out', bytes: 100, recipients: 4 }),
+        event({ name: 'announce', direction: 'out', bytes: 100, recipients: 6 }),
+      );
+
+      const [announce] = await store.getMessageStats('announce', { direction: 'out' });
+      expect(announce.count).toBe(2);
+      expect(announce.totalBytes).toBe(200);
+      expect(announce.sentCount).toBe(10);
+      expect(announce.sentBytes).toBe(1000);
+      // The payload distribution describes one message, so the fan-out must not inflate it.
+      expect(announce.bytes.avg).toBe(100);
+      expect(announce.bytes.max).toBe(100);
+
+      const overview = await store.getOverview();
+      expect(overview.totalMessages).toBe(2);
+      expect(overview.totalBytes).toBe(200);
+      expect(overview.totalSent).toBe(10);
+      expect(overview.totalSentBytes).toBe(1000);
+    });
+
+    it('treats an unknown recipient count as one', async () => {
+      await write(event({ name: 'ping', direction: 'in', bytes: 12 }));
+
+      const [ping] = await store.getMessageStats('ping', { direction: 'in' });
+      expect(ping.sentCount).toBe(ping.count);
+      expect(ping.sentBytes).toBe(ping.totalBytes);
+    });
+
+    it('keeps a message emitted to nobody, with nothing sent', async () => {
+      await write(event({ name: 'void', direction: 'out', bytes: 500, recipients: 0 }));
+
+      const [emitted] = await store.getMessageStats('void', { direction: 'out' });
+      expect(emitted.count).toBe(1);
+      expect(emitted.totalBytes).toBe(500);
+      expect(emitted.sentCount).toBe(0);
+      expect(emitted.sentBytes).toBe(0);
     });
 
     it('only reports latency for messages that had one measured', async () => {
@@ -296,6 +336,33 @@ export function describeStoreContract(label: string, context: ContractContext): 
 
         // The two messages of the last hour land in two different buckets.
         expect(timeline.filter((bucket) => bucket.count > 0)).toHaveLength(2);
+      });
+
+      it('carries the recipient counts into the timeline', async () => {
+        windowed.record(
+          event({
+            name: 'announce',
+            direction: 'out',
+            bytes: 10,
+            recipients: 7,
+            timestamp: NOW - 30_000,
+          }),
+        );
+        if (context.settle) await context.settle(windowed);
+
+        const overview = await windowed.getOverview({ window: '1h' });
+        // The two plain messages of the last hour, plus one broadcast to seven clients.
+        expect(overview.totalMessages).toBe(3);
+        expect(overview.totalSent).toBe(9);
+        expect(overview.totalBytes).toBe(210);
+        expect(overview.totalSentBytes).toBe(270);
+
+        const sum = (key: 'count' | 'bytes' | 'sentCount' | 'sentBytes') =>
+          overview.timeline.reduce((total, bucket) => total + bucket[key], 0);
+        expect(sum('count')).toBe(overview.totalMessages);
+        expect(sum('bytes')).toBe(overview.totalBytes);
+        expect(sum('sentCount')).toBe(overview.totalSent);
+        expect(sum('sentBytes')).toBe(overview.totalSentBytes);
       });
 
       it('says what period the numbers actually cover', async () => {

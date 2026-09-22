@@ -116,6 +116,7 @@ export class MemoryStore implements StoreInterface {
       bytes: event.bytes,
       timestamp: event.timestamp,
     };
+    if (event.recipients !== undefined) entry.recipients = event.recipients;
     if (event.sample !== undefined) entry.sample = event.sample;
     if (event.latencyMs !== undefined) {
       entry.latencyMs = event.latencyMs;
@@ -183,9 +184,11 @@ export class MemoryStore implements StoreInterface {
     const overview: Overview = {
       totalMessages: 0,
       totalBytes: 0,
+      totalSent: 0,
+      totalSentBytes: 0,
       messageTypes: entries.length,
-      in: { count: 0, bytes: 0 },
-      out: { count: 0, bytes: 0 },
+      in: { count: 0, bytes: 0, sentCount: 0, sentBytes: 0 },
+      out: { count: 0, bytes: 0, sentCount: 0, sentBytes: 0 },
       firstSeen: null,
       lastSeen: null,
       window: range,
@@ -197,9 +200,13 @@ export class MemoryStore implements StoreInterface {
     for (const [, aggregate] of entries) {
       overview.totalMessages += aggregate.count;
       overview.totalBytes += aggregate.bytesTotal;
+      overview.totalSent += aggregate.sentCount;
+      overview.totalSentBytes += aggregate.sentBytes;
       const side = overview[aggregate.direction];
       side.count += aggregate.count;
       side.bytes += aggregate.bytesTotal;
+      side.sentCount += aggregate.sentCount;
+      side.sentBytes += aggregate.sentBytes;
 
       if (aggregate.firstSeen > 0 && (overview.firstSeen === null || aggregate.firstSeen < overview.firstSeen)) {
         overview.firstSeen = aggregate.firstSeen;

@@ -11,19 +11,22 @@ const emit = defineEmits<{ select: [name: string] }>();
 const counting = useCounting();
 
 /**
- * The two ways of counting a message. `per client` is the default: one broadcast to a room
+ * The two ways of counting a message. `copies sent` is the default: one broadcast to a room
  * of ten is ten messages and ten payloads, which is what the server actually pushed out.
+ *
+ * The labels name what gets counted rather than the mode, so the switch reads on its own:
+ * next to the `Count` caption they say which unit every number on the page is in.
  */
 const COUNTING: Array<{ value: CountingMode; label: string; hint: string }> = [
   {
     value: 'sent',
-    label: 'Per client',
-    hint: 'Count every copy sent: a broadcast to ten clients counts ten times',
+    label: 'Copies sent',
+    hint: 'Count every copy the server pushed out: a broadcast to ten clients counts ten times',
   },
   {
     value: 'emit',
-    label: 'Per emit',
-    hint: 'Count every call once, whatever the number of recipients',
+    label: 'Emit calls',
+    hint: 'Count every call to emit once, whatever the number of recipients',
   },
 ];
 
@@ -132,6 +135,7 @@ const hasNamespaces = computed(() => new Set(props.messages.map((m) => m.namespa
         {{ option === 'all' ? 'All' : option === 'in' ? 'Received' : 'Sent' }}
       </button>
       <div class="spacer" style="flex: 1" />
+      <span class="muted" title="What every count on the page is a count of">Count</span>
       <button
         v-for="option in COUNTING"
         :key="option.value"

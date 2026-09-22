@@ -11,4 +11,4 @@
 
 Count how many clients each message is sent to, so a broadcast to a room of 500 shows the
 bandwidth it really costs and a broadcast to an empty room shows none. The dashboard counts
-per client by default, with a switch back to counting one per emit.
+per client, and says how many clients one emit reached on average when that is more than one.

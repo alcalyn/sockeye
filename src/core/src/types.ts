@@ -125,14 +125,6 @@ export type TopKind = 'slowest' | 'heaviest';
 
 export type SortKey = 'count' | 'bandwidth' | 'bytes' | 'latency' | 'name';
 
-/**
- * Which of the two ways of counting a message the numbers refer to.
- *
- * - `sent` : one message per recipient, which is what the server actually pushed out
- * - `emit` : one message per call, whatever the number of recipients
- */
-export type CountingMode = 'sent' | 'emit';
-
 /** Restricts a query to a period, by window key (`5m`, `1h`, `24h`, `all`…). */
 export interface WindowOptions {
   /** A key from `WINDOWS`. Defaults to `all`, the whole history. */
@@ -147,11 +139,6 @@ export interface ListMessagesOptions extends WindowOptions {
    * - `latency`   : biggest median latency first
    */
   sort?: SortKey;
-  /**
-   * Which numbers `count` and `bandwidth` sort on. Defaults to `sent`, so the heaviest
-   * message types are the ones that really cost the most bandwidth.
-   */
-  counting?: CountingMode;
   direction?: Direction;
   namespace?: string;
   limit?: number;

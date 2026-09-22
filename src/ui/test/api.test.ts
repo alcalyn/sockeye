@@ -35,7 +35,7 @@ describe('createApiHandler', () => {
     expect((body as any).totalBytes).toBe(900_220);
   });
 
-  it('sorts on the recipients unless asked to count the emits', async () => {
+  it('sorts on the recipients, not on the number of emits', async () => {
     const store = new MemoryStore({ now: () => NOW });
     const base = { timestamp: NOW - 30_000, namespace: '/', direction: 'out' as const };
     // A rare broadcast to a big room against a frequent unicast message.
@@ -46,20 +46,12 @@ describe('createApiHandler', () => {
     const sent = await handleFanout({ method: 'GET', path: '/messages', query: { sort: 'count' } });
     expect((sent.body as any[])[0].name).toBe('presence');
 
-    const emits = await handleFanout({
+    const byBytes = await handleFanout({
       method: 'GET',
       path: '/messages',
-      query: { sort: 'count', counting: 'emit' },
+      query: { sort: 'bandwidth' },
     });
-    expect((emits.body as any[])[0].name).toBe('cursor');
-
-    // An unknown value must not silently change how the list is counted.
-    const garbage = await handleFanout({
-      method: 'GET',
-      path: '/messages',
-      query: { sort: 'count', counting: 'nonsense' },
-    });
-    expect((garbage.body as any[])[0].name).toBe('presence');
+    expect((byBytes.body as any[])[0].name).toBe('presence');
   });
 
   it('sorts, filters and limits the message list', async () => {

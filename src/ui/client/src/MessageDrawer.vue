@@ -4,20 +4,15 @@ import HistogramChart from './HistogramChart.vue';
 import PayloadSamples from './PayloadSamples.vue';
 import { fetchMessage } from './api';
 import * as fmt from './format';
-import { useCounting } from './counting';
 import type { MessageDetail, TimelineBucket } from './types';
 
-const counting = useCounting();
-const perEmit = computed(() => counting.value === 'emit');
-
 /**
- * The history, counted the way the dashboard is set to count.
+ * The history, counted per client reached like everything else on the page.
  *
  * The chart always reads `count` and `bytes`, so the two recipient-aware numbers are moved
  * into them rather than teaching every chart about both.
  */
 function history(detail: MessageDetail): TimelineBucket[] {
-  if (perEmit.value) return detail.timeline;
   return detail.timeline.map((bucket) => ({
     ...bucket,
     count: bucket.sentCount,
@@ -25,9 +20,14 @@ function history(detail: MessageDetail): TimelineBucket[] {
   }));
 }
 
-/** How many clients one message of this type reaches on average. */
-function fanout(detail: MessageDetail): number {
-  return detail.count === 0 ? 0 : detail.sentCount / detail.count;
+/**
+ * How many clients one emit of this message reaches on average, or `null` when it only
+ * ever went to one: emits and messages are the same thing then, and saying so twice
+ * just adds noise.
+ */
+function fanout(detail: MessageDetail): number | null {
+  if (detail.count === 0 || detail.sentCount === detail.count) return null;
+  return Math.round((detail.sentCount / detail.count) * 10) / 10;
 }
 
 /** Length of one history bucket, which drives how its axis is labelled. */
@@ -136,21 +136,20 @@ onBeforeUnmount(() => {
         <h2>
           <span class="tag" :class="detail.direction">{{ detail.direction }}</span>
           {{ detail.namespace }} ·
-          {{ fmt.count(perEmit ? detail.count : detail.sentCount) }}
-          {{ perEmit ? 'emits' : 'messages sent' }}
+          {{ fmt.count(detail.sentCount) }} messages
+          <span
+            v-if="fanout(detail) !== null"
+            class="muted"
+            style="text-transform: none; letter-spacing: 0"
+          >
+            from {{ fmt.count(detail.count) }} emits · avg recipients: {{ fanout(detail) }}
+          </span>
         </h2>
 
         <dl class="stats">
           <div>
             <dt>Bandwidth</dt>
-            <dd>{{ fmt.bytes(perEmit ? detail.totalBytes : detail.sentBytes) }}</dd>
-          </div>
-          <div v-if="detail.sentCount !== detail.count">
-            <dt>Recipients</dt>
-            <dd>
-              {{ fmt.count(Math.round(fanout(detail) * 10) / 10) }} per emit
-              <span class="muted">({{ fmt.count(detail.count) }} emits)</span>
-            </dd>
+            <dd>{{ fmt.bytes(detail.sentBytes) }}</dd>
           </div>
           <div>
             <dt>Payload median</dt>

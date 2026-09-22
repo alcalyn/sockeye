@@ -57,11 +57,6 @@ function listOptions(query: ApiRequest['query'] = {}): ListMessagesOptions {
   const window = first(query.window);
   if (window) options.window = window;
 
-  // Which of the two counts the list is sorted and trimmed on, so the server keeps the
-  // same rows the dashboard is about to show.
-  const counting = first(query.counting);
-  if (counting === 'emit' || counting === 'sent') options.counting = counting;
-
   return options;
 }
 

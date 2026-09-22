@@ -9,7 +9,6 @@ import ToolbarSelect from './ToolbarSelect.vue';
 import TopList from './TopList.vue';
 import { fetchDashboard, resetStore } from './api';
 import { useTheme } from './theme';
-import { useCounting } from './counting';
 import * as fmt from './format';
 import type { Dashboard, WindowRange } from './types';
 
@@ -27,8 +26,6 @@ const paused = ref(false);
 const window_ = ref('auto');
 const settingsOpen = ref(false);
 const theme = useTheme();
-// Set from the messages table, and read here so every number on the page agrees.
-const counting = useCounting();
 
 // A half-filled disc is the usual "follow the system" mark, next to the sun and the moon.
 const THEMES = {
@@ -56,7 +53,7 @@ let timer: ReturnType<typeof setInterval> | undefined;
 
 async function refresh(): Promise<void> {
   try {
-    const next = await fetchDashboard(window_.value, counting.value);
+    const next = await fetchDashboard(window_.value);
     data.value = next;
     if (!sameWindows(windows.value, next.windows)) {
       windows.value = next.windows.map((w) => ({ key: w.key, label: w.label }));
@@ -89,8 +86,6 @@ async function reset(): Promise<void> {
 }
 
 watch(window_, refresh);
-// The server sorts and trims the message list, so it has to be asked again.
-watch(counting, refresh);
 watch(intervalMs, schedule);
 
 onMounted(() => {
@@ -106,31 +101,19 @@ const overview = computed(() => data.value?.overview ?? null);
 // The two headline cards carry their own history behind the number: how the traffic got
 // there, on the same time axis for both.
 const timeline = computed(() => overview.value?.timeline ?? []);
-const perEmit = computed(() => counting.value === 'emit');
-const messagesOverTime = computed(() =>
-  timeline.value.map((bucket) => (perEmit.value ? bucket.count : bucket.sentCount)),
-);
-const bytesOverTime = computed(() =>
-  timeline.value.map((bucket) => (perEmit.value ? bucket.bytes : bucket.sentBytes)),
-);
+const messagesOverTime = computed(() => timeline.value.map((bucket) => bucket.sentCount));
+const bytesOverTime = computed(() => timeline.value.map((bucket) => bucket.sentBytes));
 
-/** The headline numbers, counted the way the page is set to count. */
-const totals = computed(() => {
+/**
+ * How many clients one emit reaches on average, or `null` when every message went to a
+ * single client: there is nothing to say then, since emits and messages are the same thing.
+ */
+const fanout = computed(() => {
   const current = overview.value;
-  if (!current) return null;
-  return perEmit.value
-    ? {
-        messages: current.totalMessages,
-        bytes: current.totalBytes,
-        in: { count: current.in.count, bytes: current.in.bytes },
-        out: { count: current.out.count, bytes: current.out.bytes },
-      }
-    : {
-        messages: current.totalSent,
-        bytes: current.totalSentBytes,
-        in: { count: current.in.sentCount, bytes: current.in.sentBytes },
-        out: { count: current.out.sentCount, bytes: current.out.sentBytes },
-      };
+  if (!current || current.totalSent === current.totalMessages || current.totalMessages === 0) {
+    return null;
+  }
+  return Math.round((current.totalSent / current.totalMessages) * 10) / 10;
 });
 const periodOptions = computed(() => [
   { value: 'auto', label: 'Auto' },
@@ -189,25 +172,28 @@ const period = computed(() => {
 
     <p v-if="error" class="error">{{ error }}</p>
 
-    <div v-if="overview && totals" class="cards">
+    <div v-if="overview" class="cards">
       <div class="card">
         <CardSparkline :values="messagesOverTime" />
         <div class="label">Messages</div>
-        <div class="value">{{ fmt.count(totals.messages) }}</div>
+        <div class="value">{{ fmt.count(overview.totalSent) }}</div>
         <div class="hint">
-          {{ fmt.count(totals.in.count) }} in · {{ fmt.count(totals.out.count) }} out
+          {{ fmt.count(overview.in.sentCount) }} in · {{ fmt.count(overview.out.sentCount) }} out
         </div>
-        <div class="hint">{{ perEmit ? 'one per emit' : 'one per client reached' }}</div>
+        <div v-if="fanout === null" class="hint">one per client reached</div>
+        <div v-else class="hint" title="Messages divided by the number of calls to emit">
+          from {{ fmt.count(overview.totalMessages) }} emits · avg recipients: {{ fanout }}
+        </div>
       </div>
       <div class="card">
         <CardSparkline :values="bytesOverTime" />
         <div class="label">Total data</div>
-        <div class="value">{{ fmt.bytes(totals.bytes) }}</div>
+        <div class="value">{{ fmt.bytes(overview.totalSentBytes) }}</div>
         <div class="hint">
-          {{ fmt.bytes(totals.in.bytes) }} in · {{ fmt.bytes(totals.out.bytes) }} out
+          {{ fmt.bytes(overview.in.sentBytes) }} in · {{ fmt.bytes(overview.out.sentBytes) }} out
         </div>
         <div class="hint">
-          {{ fmt.rate(totals.bytes, overview.firstSeen, overview.lastSeen) }} on average
+          {{ fmt.rate(overview.totalSentBytes, overview.firstSeen, overview.lastSeen) }} on average
         </div>
       </div>
       <div class="card">

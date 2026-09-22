@@ -144,7 +144,7 @@ describe('applyListOptions', () => {
     expect(applyListOptions(list, { sort: 'latency' })[0].name).toBe('slow');
   });
 
-  it('sorts on the recipients by default, and on the emits when asked', () => {
+  it('sorts on the recipients, not on the number of emits', () => {
     // One broadcast to 500 clients against a unicast message sent 100 times.
     const fanout = [
       stats({ name: 'unicast', count: 100, totalBytes: 1000 }),
@@ -153,8 +153,6 @@ describe('applyListOptions', () => {
 
     expect(applyListOptions(fanout, { sort: 'count' })[0].name).toBe('broadcast');
     expect(applyListOptions(fanout, { sort: 'bandwidth' })[0].name).toBe('broadcast');
-    expect(applyListOptions(fanout, { sort: 'count', counting: 'emit' })[0].name).toBe('unicast');
-    expect(applyListOptions(fanout, { sort: 'bandwidth', counting: 'emit' })[0].name).toBe('unicast');
   });
 
   it('filters by direction and limits', () => {

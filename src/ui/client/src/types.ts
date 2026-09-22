@@ -104,11 +104,3 @@ export interface Dashboard {
 }
 
 export type SortKey = 'count' | 'bandwidth' | 'bytes' | 'latency' | 'name';
-
-/**
- * Which of the two ways of counting a message the dashboard shows.
- *
- * - `sent` : one message per recipient, what the server really pushed out
- * - `emit` : one message per call, whatever the number of recipients
- */
-export type CountingMode = 'sent' | 'emit';

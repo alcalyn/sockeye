@@ -11,6 +11,12 @@ Add sockeye on your nodejs app to collect websocket messages, and get metrics ab
 - what are the 10 slowest and the 10 heaviest messages, and what was inside them
 - and all of that over the last 5 minutes, the last hour, or since the start
 
+Sockeye dashboard:
+![Sockeye dashboard](./screenshots/dash.png)
+
+Sockeye message details:
+![Sockeye message details](./screenshots/details.png)
+
 Supports:
 - [socket.io](https://socket.io/)
 - [websockets/ws](https://github.com/websockets/ws)
@@ -38,7 +44,7 @@ import { dashboard } from '@sockeye-js/ui';
 const store = createMemoryStore();      // in memory, but can use a persistent storage like redis
 
 io.use(sockeye(store));                 // collect
-app.use('/sockeye', dashboard(store));  // plug the dashboard, but you can put it behind a basic auth
+app.use('/sockeye', dashboard(store));  // plug the dashboard, see Security to put it behind a basic auth
 ```
 
 Open <http://localhost:3000/sockeye/>.
@@ -235,6 +241,29 @@ import { createApiHandler } from '@sockeye-js/ui';
 const handle = createApiHandler(store);
 const response = await handle({ method: 'GET', path: '/overview' });
 ```
+
+## Security
+
+The dashboard has no authentication of its own: whoever reaches it can read your message
+names, payload previews, and call `POST /api/reset`. Do not expose it publicly as is.
+
+For example, put it behind a basic auth with express and
+[`express-basic-auth`](https://github.com/LionC/express-basic-auth):
+
+```ts
+import basicAuth from 'express-basic-auth';
+
+app.use(
+  '/sockeye',
+  basicAuth({
+    users: { admin: process.env.SOCKEYE_PASSWORD },
+    challenge: true, // makes the browser prompt for credentials
+  }),
+  dashboard(store),
+);
+```
+
+Serve it over HTTPS, since basic auth sends credentials in clear otherwise.
 
 ## Collector options
 

@@ -1,5 +1,4 @@
 ---
-"sockeye-test-app": minor
 "@sockeye-js/collect-socketio": minor
 "@sockeye-js/collect-websocket": minor
 "@sockeye-js/collect-ws": minor

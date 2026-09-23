@@ -26,6 +26,17 @@ export function time(value: number | null): string {
   return value ? new Date(value).toLocaleTimeString() : '-';
 }
 
+/**
+ * When something happened: the time of day for today, with the date in front otherwise,
+ * since a top list over a long period mixes several days.
+ */
+export function moment(value: number): string {
+  const date = new Date(value);
+  const time = date.toLocaleTimeString();
+  if (date.toDateString() === new Date().toDateString()) return time;
+  return `${date.toLocaleDateString()} ${time}`;
+}
+
 /** Average throughput over the collection window, e.g. `12 kB/s`. */
 export function rate(total: number, from: number | null, to: number | null): string {
   if (!from || !to || to <= from) return '-';

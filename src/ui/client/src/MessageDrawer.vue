@@ -36,8 +36,12 @@ function bucketSize(detail: MessageDetail): number {
   return first ? first.to - first.from : 60_000;
 }
 
-function bucketUnit(detail: MessageDetail): string {
-  return fmt.unit(bucketSize(detail));
+/** What the history charts cover, e.g. `last 24 hours · 30 minutes resolution`. */
+function timelineCaption(detail: MessageDetail): string {
+  const first = detail.timeline[0];
+  const last = detail.timeline[detail.timeline.length - 1];
+  if (!first || !last) return '';
+  return `last ${fmt.unit(last.to - first.from)} · ${fmt.unit(bucketSize(detail))} resolution`;
 }
 
 /** Examples from every direction of this message, heaviest first. */
@@ -169,15 +173,16 @@ onBeforeUnmount(() => {
           </div>
         </dl>
 
-        <h2>Over time: how many messages per {{ bucketUnit(detail) }}</h2>
+        <h2>Count</h2>
         <HistogramChart
           :buckets="history(detail)"
           :format="fmt.clockFor(bucketSize(detail))"
           unit="messages"
           time-axis
         />
+        <p v-if="detail.timeline.length" class="chart-caption">{{ timelineCaption(detail) }}</p>
 
-        <h2>Over time: bandwidth per {{ bucketUnit(detail) }}</h2>
+        <h2>Bandwidth</h2>
         <HistogramChart
           :buckets="history(detail)"
           :format="fmt.clockFor(bucketSize(detail))"
@@ -185,6 +190,7 @@ onBeforeUnmount(() => {
           unit="bandwidth"
           time-axis
         />
+        <p v-if="detail.timeline.length" class="chart-caption">{{ timelineCaption(detail) }}</p>
 
         <h2>Payload sizes: how many messages per size</h2>
         <HistogramChart :buckets="detail.bytesHistogram" :format="fmt.bytes" unit="messages" />

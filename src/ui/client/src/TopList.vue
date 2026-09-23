@@ -42,6 +42,7 @@ function toggle(index: number): void {
         <span v-if="metric === 'latency'" class="muted" style="margin-left: 10px">
           {{ fmt.bytes(entry.bytes) }}
         </span>
+        <span class="muted" style="margin-left: 10px">{{ fmt.moment(entry.timestamp) }}</span>
         <div class="bar" :style="{ width: `${(score(entry) / max) * 100}%` }" />
       </div>
       <strong class="num">{{ format(score(entry)) }}</strong>

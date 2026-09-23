@@ -1,6 +1,6 @@
 {
   "name": "@sockeye-js/collect-websocket",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Framework-free sockeye collector: report WebSocket messages yourself, from any transport.",
   "license": "AGPL-3.0-or-later",
   "author": "Julien Maulny (https://github.com/alcalyn)",

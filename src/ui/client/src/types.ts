@@ -39,6 +39,8 @@ export interface TimelineBucket {
   bytes: number;
   sentCount: number;
   sentBytes: number;
+  /** Response times measured in this bucket. Absent when no reply was measured in it. */
+  latency?: Distribution;
 }
 
 export interface MessageDetail extends MessageStats {

@@ -182,6 +182,18 @@ onBeforeUnmount(() => {
         />
         <p v-if="detail.timeline.length" class="chart-caption">{{ timelineCaption(detail) }}</p>
 
+        <template v-if="detail.latency">
+          <h2>Response Time</h2>
+          <HistogramChart
+            :buckets="detail.timeline"
+            :format="fmt.clockFor(bucketSize(detail))"
+            metric="latency"
+            unit="p95"
+            time-axis
+          />
+          <p class="chart-caption">{{ timelineCaption(detail) }} · p95 · hover a bar for median and max</p>
+        </template>
+
         <h2>Bandwidth</h2>
         <HistogramChart
           :buckets="history(detail)"

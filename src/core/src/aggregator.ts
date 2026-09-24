@@ -42,13 +42,15 @@ export function distributionOf(
   counts: hist.Counts,
 ): Distribution {
   if (count === 0) return emptyDistribution();
+  // A histogram estimate lands inside a bucket, possibly past the exact maximum.
+  const quantile = (q: number) => Math.min(max, hist.quantile(counts, q, count));
   return {
     count,
     total,
     avg: total / count,
-    p50: hist.quantile(counts, 0.5, count),
-    p95: hist.quantile(counts, 0.95, count),
-    p99: hist.quantile(counts, 0.99, count),
+    p50: quantile(0.5),
+    p95: quantile(0.95),
+    p99: quantile(0.99),
     max,
   };
 }

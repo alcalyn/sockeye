@@ -187,6 +187,21 @@ export function coarsestWindow(windows: readonly WindowSpec[]): WindowSpec | und
   return coarsest;
 }
 
+/** One bucket of a history, from the slice that covers it, if anything landed in it. */
+export function timelineBucket(from: number, to: number, slice?: StatsAggregator): TimelineBucket {
+  const bucket: TimelineBucket = {
+    from,
+    to,
+    count: slice?.count ?? 0,
+    bytes: slice?.bytesTotal ?? 0,
+    sentCount: slice?.sentCount ?? 0,
+    sentBytes: slice?.sentBytes ?? 0,
+  };
+  const latency = slice?.toStats().latency;
+  if (latency) bucket.latency = latency;
+  return bucket;
+}
+
 /**
  * Sum timelines cut on the same window into one, oldest first.
  *
@@ -205,7 +220,9 @@ export function mergeTimelines(timelines: readonly TimelineBucket[][]): Timeline
         total.sentCount += bucket.sentCount;
         total.sentBytes += bucket.sentBytes;
       } else {
-        merged.set(bucket.from, { ...bucket });
+        // Latencies of different messages do not add up, so the sum carries none.
+        const { latency: _latency, ...counts } = bucket;
+        merged.set(bucket.from, counts);
       }
     }
   }
@@ -273,15 +290,7 @@ export class WindowedSeries {
     const buckets: TimelineBucket[] = [];
 
     for (let index = first; index <= last; index++) {
-      const slice = ring.get(index);
-      buckets.push({
-        from: index * ms,
-        to: (index + 1) * ms,
-        count: slice?.count ?? 0,
-        bytes: slice?.bytesTotal ?? 0,
-        sentCount: slice?.sentCount ?? 0,
-        sentBytes: slice?.sentBytes ?? 0,
-      });
+      buckets.push(timelineBucket(index * ms, (index + 1) * ms, ring.get(index)));
     }
     return buckets;
   }

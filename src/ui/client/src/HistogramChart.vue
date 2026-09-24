@@ -2,10 +2,13 @@
 import { computed } from 'vue';
 import * as fmt from './format';
 import { useMarkers } from './markers';
-import type { HistogramBucket } from './types';
+import type { Distribution, HistogramBucket } from './types';
 
-/** A bucket always carries a count; a timeline bucket also carries the bytes it moved. */
-type Bucket = HistogramBucket & { bytes?: number };
+/**
+ * A bucket always carries a count; a timeline bucket also carries the bytes it moved and,
+ * when replies were measured in it, how long they took.
+ */
+type Bucket = HistogramBucket & { bytes?: number; latency?: Distribution };
 
 const props = withDefaults(
   defineProps<{
@@ -15,7 +18,7 @@ const props = withDefaults(
     /** What the vertical axis measures. */
     unit?: string;
     /** Which number of a bucket the bars stand for. */
-    metric?: 'count' | 'bytes';
+    metric?: 'count' | 'bytes' | 'latency';
     /**
      * Whether the bucket bounds are moments in time. Only then do the viewer's markers
      * mean anything: a payload size axis has no date to point at.
@@ -29,11 +32,22 @@ const markers = useMarkers();
 
 /** The number the bars stand for, whichever of the two the chart was asked for. */
 function value(bucket: Bucket): number {
+  if (props.metric === 'latency') return bucket.latency?.p95 ?? 0;
   return props.metric === 'bytes' ? (bucket.bytes ?? 0) : bucket.count;
 }
 
 function formatValue(amount: number): string {
+  if (props.metric === 'latency') return fmt.ms(amount);
   return props.metric === 'bytes' ? fmt.bytes(amount) : amount.toLocaleString();
+}
+
+/**
+ * Height of a bar. An empty bucket keeps a sliver so the gap reads as quiet, except for
+ * a response time nobody measured: a sliver there would read as "instant".
+ */
+function height(bucket: Bucket): string {
+  if (props.metric === 'latency' && !bucket.latency) return '0';
+  return `${Math.max(1.5, (value(bucket) / scaleMax.value) * 100)}%`;
 }
 
 const peak = computed(() => Math.max(1, ...props.buckets.map(value)));
@@ -107,8 +121,17 @@ const marks = computed(() => {
     });
 });
 
-const title = (bucket: Bucket): string =>
-  `${props.format(bucket.from)} - ${props.format(bucket.to)}: ${formatValue(value(bucket))} ${props.unit}`;
+function title(bucket: Bucket): string {
+  const range = `${props.format(bucket.from)} - ${props.format(bucket.to)}`;
+  if (props.metric !== 'latency') return `${range}: ${formatValue(value(bucket))} ${props.unit}`;
+
+  const { latency } = bucket;
+  if (!latency) return `${range}: no reply measured`;
+  return (
+    `${range}: p95 ${fmt.ms(latency.p95)} · median ${fmt.ms(latency.p50)} · ` +
+    `max ${fmt.ms(latency.max)} · ${fmt.count(latency.count)} replies`
+  );
+}
 </script>
 
 <template>
@@ -124,7 +147,7 @@ const title = (bucket: Bucket): string =>
         v-for="bucket in buckets"
         :key="bucket.from"
         class="col"
-        :style="{ height: `${Math.max(1.5, (value(bucket) / scaleMax) * 100)}%` }"
+        :style="{ height: height(bucket) }"
         :title="title(bucket)"
       />
 

@@ -7,6 +7,7 @@ import {
   autoWindow,
   bucketMs,
   coarsestWindow,
+  timelineBucket,
   coveredRange,
   histogram,
   parseSeriesKey,
@@ -697,14 +698,8 @@ export class RedisStore implements StoreInterface {
     return slots.map((slot, index) => {
       const entry = results[index];
       const hash = (entry && !entry[0] ? entry[1] : null) as Record<string, string> | null;
-      return {
-        from: slot * ms,
-        to: (slot + 1) * ms,
-        count: Number(hash?.count ?? 0),
-        bytes: Number(hash?.bytes ?? 0),
-        sentCount: Number(hash?.scount ?? hash?.count ?? 0),
-        sentBytes: Number(hash?.sbytes ?? hash?.bytes ?? 0),
-      };
+      const slice = hash && Object.keys(hash).length > 0 ? aggregateFromHash(key, hash) : undefined;
+      return timelineBucket(slot * ms, (slot + 1) * ms, slice);
     });
   }
 

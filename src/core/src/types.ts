@@ -91,6 +91,12 @@ export interface TimelineBucket {
   /** Same two numbers, counted per recipient rather than per message. */
   sentCount: number;
   sentBytes: number;
+  /**
+   * Response times measured in this bucket, so a chart shows when replies got slower.
+   * Only in the history of one message, and absent when no reply was measured in it:
+   * summing the latencies of unrelated messages would mean nothing.
+   */
+  latency?: Distribution;
 }
 
 /** `MessageStats` plus the raw distributions and the history, for the detail view. */

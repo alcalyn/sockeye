@@ -396,6 +396,27 @@ export function describeStoreContract(label: string, context: ContractContext): 
         expect(busy!.to).toBeGreaterThan(NOW - 10 * MINUTE);
       });
 
+      it('reports response times bucket by bucket for a message', async () => {
+        windowed.record(
+          event({ name: 'tenMinutesAgo', direction: 'out', bytes: 100, latencyMs: 250, timestamp: NOW - 5 * MINUTE }),
+        );
+        if (context.settle) await context.settle(windowed);
+
+        const { timeline } = (await windowed.getMessageStats('tenMinutesAgo', { window: '15m' }))[0];
+        const measured = timeline.filter((bucket) => bucket.latency);
+
+        // Quiet buckets have nothing to say about latency, rather than a misleading zero.
+        expect(measured).toHaveLength(2);
+        expect(measured[0].latency!.count).toBe(1);
+        expect(measured[0].latency!.max).toBe(50);
+        expect(measured[1].latency!.max).toBe(250);
+        expect(timeline.filter((bucket) => bucket.count === 0).every((bucket) => !bucket.latency)).toBe(true);
+
+        // Latencies of different messages do not add up into an overview.
+        const overview = await windowed.getOverview({ window: '15m' });
+        expect(overview.timeline.some((bucket) => bucket.latency)).toBe(false);
+      });
+
       it('falls back to the coarsest resolution for the whole history', async () => {
         const { timeline } = (await windowed.getMessageStats('threeDaysAgo', { window: 'all' }))[0];
         expect(timeline[0].to - timeline[0].from).toBe(4 * HOUR);

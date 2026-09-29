@@ -1,5 +1,12 @@
 # @sockeye-js/collect-socketio
 
+## 0.5.0
+
+### Patch Changes
+
+- Updated dependencies [13f6a69]
+  - @sockeye-js/core@0.5.0
+
 ## 0.4.0
 
 ### Minor Changes

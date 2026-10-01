@@ -169,6 +169,8 @@ const hasNamespaces = computed(() => new Set(props.messages.map((m) => m.namespa
 
     <p v-else-if="visible.length < rows.length" class="truncated muted">
       Showing {{ visible.length }} of {{ fmt.count(rows.length) }} messages.
+      <button v-if="limit < 100" class="link" @click="limit = 100">Show more</button>
+      <button v-else class="link" @click="limit = 0">Show all</button>
     </p>
   </section>
 </template>
